@@ -1,0 +1,21 @@
+# 分段回填第 1 段: 2026-01-01 00:00 UTC  →  2026-02-01 00:00 UTC
+# (北京时: 2026-01-01 08:00  →  2026-02-01 08:00)
+mode: backfill
+
+data_dir: ./data
+products: [PAR, CLP, ARP]
+minutes: ["00", "10"]
+concurrency: 4
+
+backfill:
+  start: "2026-02-01T00:00"
+  end:   "2026-03-01T00:00"
+  dry_run: false
+
+log_file: ./logs/backfill-202602.log
+log_rotation: "50 MB"
+log_retention: "30 days"
+
+# 跨国 FTP 易超时, 重试稍多一些
+max_retries: 8
+retry_backoff_sec: 15

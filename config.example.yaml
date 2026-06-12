@@ -1,0 +1,34 @@
+# hima-download run-config.
+# Used by: `uv run hima-download run --config config.yaml`
+# Credentials (HIMA_FTP_USER/PASS) still come from .env.
+
+# Operating mode: "backfill" (historical range) or "realtime" (poll for new files).
+mode: backfill
+
+# ---- Storage & products ----
+data_dir: ./data                 # where files land: <data_dir>/<PRODUCT>/<YYYYMM>/<file>
+products: [PAR, CLP, ARP]        # any subset of PAR / CLP / ARP
+minutes: ["00", "10"]            # which minutes per hour to grab (default 00,10 for redundancy)
+par_include_japan: false         # also pull 1km Japan-region PAR file
+concurrency: 4                   # parallel FTP connections (server tolerates ~4-6)
+
+# ---- Backfill (only used when mode=backfill) ----
+backfill:
+  start: "2026-06-09T00:00"      # UTC, inclusive. Beijing time - 8h.
+  end:   "2026-06-10T00:00"      # UTC, exclusive.
+  dry_run: false                 # true = just plan, no download
+
+# ---- Realtime (only used when mode=realtime) ----
+realtime:
+  window_hours: 6                # each cycle scans last N hours for missing files
+  interval_sec: 300              # poll every N seconds
+  once: false                    # true = run a single cycle then exit (for cron)
+
+# ---- Retry ----
+max_retries: 5
+retry_backoff_sec: 10
+
+# ---- Logging (files are written in addition to stderr) ----
+log_file: ./logs/hima-download.log
+log_rotation: "50 MB"            # rotate when file reaches this size
+log_retention: "14 days"         # delete rotated files older than this
