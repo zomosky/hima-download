@@ -41,10 +41,18 @@ import dask
 import numpy as np
 import xarray as xr
 from dask.diagnostics import ProgressBar
+from dask.utils import SerializableLock
 from loguru import logger
 
 from .catalog import list_files, parse_time
 from .crop import BBox, crop_bbox
+
+# The PyPI netCDF4 wheel bundles a non-thread-safe HDF5; concurrent reads across dask
+# worker threads corrupt the heap ("double free or corruption"). We serialize the HDF5
+# I/O through one global lock while letting the CPU work (decode/crop/encode/compress) run
+# in parallel -- so ``workers>1`` stays fast without crashing. SerializableLock also behaves
+# correctly under a process scheduler (each process gets its own lock, and its own HDF5).
+_HDF5_LOCK = SerializableLock()
 
 # Coordinates we always keep; everything else (band, geometry, scalar time/start/end) is
 # auxiliary navigation metadata and is dropped before building the time axis.
@@ -125,7 +133,8 @@ def _open_frames(files: list[Path], bbox: BBox) -> xr.Dataset:
         engine="netcdf4",
         combine="nested",
         concat_dim="time",
-        parallel=True,
+        parallel=False,  # concurrent opens crash the non-thread-safe HDF5 wheel
+        lock=_HDF5_LOCK,  # serialize HDF5 reads; decode/crop/encode still run in parallel
         decode_times=False,  # our time axis is built from filenames; skip the file's MJD time
         preprocess=partial(_preprocess, bbox=bbox),
         coords="minimal",
