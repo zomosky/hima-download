@@ -14,10 +14,22 @@ dependencies = [
     "rich>=15.0.0",
     "tenacity>=9.1.4",
     "typer>=0.26.7",
+    # restore sub-package (crop -> Zarr): reads the downloaded NetCDF, never the network
+    "xarray>=2025.1.0",
+    "netcdf4>=1.7.0",
+    "zarr>=3.0.0",
+    "dask>=2025.1.0",
+    "numcodecs>=0.13.0",
 ]
 
 [project.scripts]
 hima-download = "hima_download:main"
+hima-restore = "hima_download.restore.cli:main"
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0",
+]
 
 [build-system]
 requires = ["uv_build>=0.11.10,<0.12.0"]

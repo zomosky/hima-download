@@ -1,0 +1,19 @@
+# hima-restore job config — crop downloaded Himawari L2 NetCDF to a bbox and write
+# one Zarr store per (product, month). Every field is optional (defaults shown) and
+# can be overridden by a CLI flag.
+#
+# Usage:
+#   uv run hima-restore scan-once --config restore.yaml
+#   uv run hima-restore run ARP 202601 --config restore.yaml
+
+data_dir: data                         # download output root: <data_dir>/<PRODUCT>/<YYYYMM>/*.nc
+output_dir: zarr                        # where <product>/<YYYYMM>_<product>.zarr is written
+bbox: [70.0, 140.0, 15.0, 55.0]        # west, east, south, north (China region)
+products: [PAR, CLP, ARP]              # PAR uses only the wide 02801 grid
+
+# Zarr writer tuning (favors region time-series reads).
+chunks: {time: -1, latitude: 256, longitude: 256}   # -1 = whole dim in one chunk
+compressor: zstd                       # zstd | lz4 | blosclz | zlib | none
+clevel: 3
+consolidated: true                     # write .zmetadata for fast open_zarr
+workers: 4                             # dask 并发线程数(读/裁剪/编码/写);默认 min(cpu, 4)

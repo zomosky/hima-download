@@ -16,4 +16,7 @@ data/
 logs/
 .DS_Store
 .idea/
+CLAUDE.md
 .vscode/
+.pytest_cache/
+zarr/

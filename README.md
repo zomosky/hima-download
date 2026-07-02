@@ -228,3 +228,134 @@ uv run hima-download run --config config.yaml
 - 按大小轮转（默认 50MB 切一份），按时长保留（默认 14 天）
 - 多线程写入安全（`enqueue=True`）
 - 想看更详细日志加 `-v / --verbose`
+
+## 再加工：裁剪 → Zarr（`hima-restore`）
+
+下载得到的是 JAXA 全盘网格 NetCDF（规则经纬度、0.05°、纬度降序、经度 0–360）。`hima-restore`
+子命令把它们裁剪到一个经纬度框（默认中国区），并按 **每个产品每个月** 拼成一个扁平 Zarr
+（沿新建的 `time` 维），方便下游做区域时序 / 训练，直接 `xr.open_zarr(...)['AOT']` 取
+`(time, lat, lon)`，无需再碰 NetCDF。它不联网，只读 `data/` 下已下载的文件。
+
+依赖随 `uv sync` 一并装好（xarray / netcdf4 / zarr / dask / numcodecs）。
+
+### 命令
+
+```bash
+# 单个 (产品, 月)：可用 --start/--end 限定一小段做快速验证
+uv run hima-restore run ARP 202601 --config restore.yaml
+uv run hima-restore run ARP 202601 --start 2026-01-01T00:00 --end 2026-01-01T02:00 \
+    --output-dir /tmp/hima_out
+
+# 扫一遍 data/ 下全部产品/全部月，幂等，适合 cron
+uv run hima-restore scan-once --config restore.yaml
+
+uv run hima-restore list-products
+```
+
+公共 flag（`run` / `scan-once` 通用，覆盖 YAML）：`--data-dir` / `--output-dir`
+/ `--bbox W,E,S,N` / `--chunks time=-1,latitude=256,longitude=256` / `--workers N`
+/ `--no-progress` / `--force`；`scan-once` 另有 `--products PAR,CLP`。
+
+**并发与进度**：读文件、裁剪、编码、写 Zarr 走 dask 线程调度并发，`--workers N`（或
+YAML `workers:`，默认 `min(cpu, 4)`）设线程数。交互终端下默认显示 dask 进度条（打开阶段 +
+写出阶段各一条），非交互（管道/cron）自动关闭，也可 `--no-progress` 手动关。
+
+### 配置（`restore.yaml`，全部可选，见 `restore.example.yaml`）
+
+```yaml
+data_dir: data                          # 下载输出根（<data_dir>/<产品>/<YYYYMM>/*.nc）
+output_dir: zarr                        # 产物根目录
+bbox: [70.0, 140.0, 15.0, 55.0]        # west, east, south, north（中国区）
+products: [PAR, CLP, ARP]              # PAR 只取宽网格 02801
+chunks: {time: -1, latitude: 256, longitude: 256}   # 偏向区域时序：整段时间一块 + 空间分块
+compressor: zstd                       # zstd | lz4 | blosclz | zlib | none
+clevel: 3
+consolidated: true
+```
+
+### 产物与读取
+
+```
+<output_dir>/<产品>/<YYYYMM>_<产品>.zarr      # 如 zarr/ARP/202601_ARP.zarr
+```
+
+```python
+import xarray as xr
+ds = xr.open_zarr("zarr/ARP/202601_ARP.zarr")     # consolidated，开启快
+ds["AOT"].sel(latitude=slice(45, 35), longitude=slice(110, 120))   # (time, lat, lon)
+ds.time.values                                     # 该月每帧的 UTC 时刻
+```
+
+### 说明
+
+- **无 manifest**：下载侧不写清单，再加工靠 glob `data/<产品>/<YYYYMM>/*.nc`，时间从文件名
+  `_YYYYMMDD_HHMM_`（UTC）解析。
+- **PAR 两种网格**：同目录有 `.02801_02401`（经度 70–210，整月）和 `.02401_02401`
+  （经度 80–200，仅 1 月 1–5 日)，`hima-restore` **只取 2801**，避免时刻重复。
+- **变量**：保留二维科学场（含 QA），丢弃导航/辅助量（band / geometry / 标量 start/end time）。
+  另丢弃 `Hour`（逐像元观测 UT）：它按每帧不同的 `add_offset` 打包，整月拼进一个 store 无法统一
+  重编码（int16×1e-4 只覆盖 ±3.27h，非零点帧会溢出），且与 `time` 坐标信息重复。
+- **紧凑无损**：保留源文件的 int16 打包 + `scale_factor`/`add_offset`/`missing_value`，store 体积
+  约为 float32 的一半；`open_zarr` 默认会自动解码为物理量。
+- **幂等**：store 记录源文件数；`scan-once` 重跑时若该月文件数未变就跳过，月内新增了帧则重建；
+  半途崩溃留下的残缺 store 会被重新处理。`--force` 强制重建。
+
+### 下载完成后自动裁剪
+
+给下载命令加 `--restore`，下完就自动把**受影响的 (产品, 月)** 裁剪进 Zarr，无需再手动/定时跑
+`hima-restore`：
+
+- `backfill --restore`：补完这段区间后，对涉及的每个月**整月重建**（幂等，已完整则跳过）。
+- `realtime --restore`：每个轮询周期下到新帧后，只把**新帧沿 `time` 维增量 append** 进当月
+  store（省算力；多次 append 会让 `time` 分块变碎，想恢复整块布局跑一次
+  `hima-restore scan-once --force`）。
+- `--restore-config restore.yaml` 指定 bbox/output_dir/chunks；不传则用内置默认（中国区、`zarr/`）。
+  裁剪读取的 `data_dir` 自动对齐下载输出，无需重复配置。
+
+```bash
+uv run hima-download backfill 2026-01-01 2026-01-02 --restore
+uv run hima-download realtime --once --restore --restore-config restore.yaml
+```
+
+YAML（`config.yaml`）里也可开启：
+
+```yaml
+mode: realtime
+restore: true                 # 下完自动裁剪
+restore_config: restore.yaml  # 可选，缺省用内置默认
+realtime:
+  once: false
+```
+
+### cron 定时
+
+```cron
+# 每小时把新下载好的帧增量并入当月 Zarr（scan-once 幂等，flock 防重叠）
+0 * * * * /usr/bin/flock -n /tmp/hima_restore.lock \
+    sh -c 'cd /path/to/hima-download && uv run hima-restore scan-once --config restore.yaml \
+        >> logs/restore.log 2>&1'
+```
+
+### 历史批量处理（`batch_restore.py`）
+
+对已下载的历史数据一次性 / 可续跑地批量裁剪。等价于 `scan-once`，额外支持**按月区间过滤** +
+**dry-run 清单** + 顶部**就地配置块**(适合一次性 backfill)：
+
+```bash
+uv run python batch_restore.py --dry-run                      # 只列出待处理 (产品,月)
+uv run python batch_restore.py --products ARP,CLP --month-start 202601 --month-end 202601
+uv run python batch_restore.py --force                        # 重建已存在产物
+```
+
+顶部「用户配置区」可改默认(`DATA_DIR`/`OUTPUT_DIR`/`BBOX`/`PRODUCTS`/月区间/`CHUNKS`…);
+已完整产物默认跳过，可随时中断续跑。
+
+### 读取产物（`read_example.py`）
+
+```bash
+uv run python read_example.py zarr/ARP/202601_ARP.zarr
+```
+
+演示区域时序读取:选一个中国子区域 + 一个变量，一次 `.load()` 读入(区域小只命中少量 chunk)。
+注意变量是打包 int16、`open_zarr` 自动解码为物理量;白天产品(PAR/CLP/ARP)在夜间/低太阳角
+时段可能整片为 `NaN`(无反演),属正常。

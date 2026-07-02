@@ -37,6 +37,10 @@ class RunConfig:
     dry_run: bool = False
     # realtime
     once: bool = False
+    # auto-restore (crop -> Zarr) after downloads: backfill rebuilds whole months,
+    # realtime appends new frames incrementally.
+    restore: bool = False
+    restore_config: Optional[str] = None
     # raw overrides to apply to global settings
     overrides: dict[str, Any] = field(default_factory=dict)
 
@@ -58,6 +62,8 @@ def load_run_config(path: Path) -> RunConfig:
             overrides[k] = raw[k]
 
     rc = RunConfig(mode=mode, overrides=overrides)  # type: ignore[arg-type]
+    rc.restore = bool(raw.get("restore", False))
+    rc.restore_config = raw.get("restore_config")
 
     if mode == "backfill":
         bf = raw.get("backfill") or {}

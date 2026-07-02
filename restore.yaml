@@ -1,0 +1,9 @@
+# hima-restore active job config (see restore.example.yaml for all options).
+data_dir: data
+output_dir: zarr
+bbox: [70.0, 140.0, 15.0, 55.0]   # west, east, south, north (China)
+products: [PAR, CLP, ARP]
+chunks: {time: -1, latitude: 256, longitude: 256}
+compressor: zstd
+clevel: 3
+consolidated: true
