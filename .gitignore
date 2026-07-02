@@ -11,6 +11,9 @@ wheels/
 
 # Project
 .env
+# Local run configs — only the *.example.yaml templates are tracked
+*.yaml
+!*.example.yaml
 data/
 *.log
 logs/
