@@ -16,8 +16,8 @@ CONTAINER="zhangmy-dev"                    # docker 容器名
 PROJECT_DIR="/workspace/hima-download"     # 容器内项目路径
 RESTORE_CFG="restore.yaml"                 # 容器内、相对 PROJECT_DIR 的裁剪配置
 DOCKER="$(command -v docker || echo /usr/bin/docker)"
-LOCK="/tmp/hima_realtime.lock"             # 宿主机自锁文件(防重叠)
-LOG="/var/log/hima-realtime.cron.log"      # 宿主机 cron 层日志
+LOCK="/home/zhangmingyu/operation/hima_realtime.lock"             # 宿主机自锁文件(防重叠)
+LOG="/home/zhangmingyu/operation/logs/hima-realtime.cron.log"      # 宿主机 cron 层日志
 AUTO_START=1                               # 容器未运行时是否尝试 docker start
 # ========================================================
 

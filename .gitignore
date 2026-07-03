@@ -17,6 +17,7 @@ wheels/
 data/
 *.log
 logs/
+nohup.out
 .DS_Store
 .idea/
 CLAUDE.md

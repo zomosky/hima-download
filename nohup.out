@@ -1,0 +1,228 @@
+Loaded config config.yaml  mode=backfill  data_dir=/workspace/hima-download/data
+Backfill 2026-04-01 00:00:00+00:00 → 2026-06-01 00:00:00+00:00  products=['PAR',
+'CLP', 'ARP']  minutes=['00', '10']  timelines=2928
+Planning ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 4392/4392 hour-dirs 0:09:49 0:00:00
+  planned: 8770  already on disk: 58  to download: 8712  ~121.19 GB
+04:22:50 WARNING /pub/himawari/L2/PAR/021/202604/02/06/H09_20260402_0610_RFL021_FLDK.02801_02401.nc (attempt 1/8): [Errno 2] No such file or directory: '/workspace/hima-download/data/PAR/202604/H09_20260402_0610_RFL021_FLDK.02801_02401.nc.part'; retry in 15s
+04:24:58 WARNING /pub/himawari/L2/PAR/021/202604/02/06/H09_20260402_0600_RFL021_FLDK.02801_02401.nc (attempt 1/8): [Errno 2] No such file or directory: '/workspace/hima-download/data/PAR/202604/H09_20260402_0600_RFL021_FLDK.02801_02401.nc.part'; retry in 15s
+04:26:07 WARNING /pub/himawari/L2/PAR/021/202604/02/05/H09_20260402_0500_RFL021_FLDK.02801_02401.nc (attempt 1/8): [Errno 2] No such file or directory: '/workspace/hima-download/data/PAR/202604/H09_20260402_0500_RFL021_FLDK.02801_02401.nc.part'; retry in 15s
+04:30:40 WARNING /pub/himawari/L2/PAR/021/202604/02/05/H09_20260402_0510_RFL021_FLDK.02801_02401.nc (attempt 1/8): [Errno 2] No such file or directory: '/workspace/hima-download/data/PAR/202604/H09_20260402_0510_RFL021_FLDK.02801_02401.nc.part'; retry in 15s
+06:01:05 WARNING /pub/himawari/L2/PAR/021/202604/02/23/H09_20260402_2300_RFL021_FLDK.02801_02401.nc (attempt 1/8): [Errno 2] No such file or directory: '/workspace/hima-download/data/PAR/202604/H09_20260402_2300_RFL021_FLDK.02801_02401.nc.part'; retry in 15s
+06:31:18 WARNING /pub/himawari/L2/PAR/021/202604/03/01/H09_20260403_0110_RFL021_FLDK.02801_02401.nc (attempt 1/8): [Errno 2] No such file or directory: '/workspace/hima-download/data/PAR/202604/H09_20260403_0110_RFL021_FLDK.02801_02401.nc.part'; retry in 15s
+06:39:31 WARNING /pub/himawari/L2/PAR/021/202604/03/03/H09_20260403_0300_RFL021_FLDK.02801_02401.nc (attempt 1/8): [Errno 2] No such file or directory: '/workspace/hima-download/data/PAR/202604/H09_20260403_0300_RFL021_FLDK.02801_02401.nc.part'; retry in 15s
+08:58:51 WARNING /pub/himawari/L2/PAR/021/202604/04/05/H09_20260404_0500_RFL021_FLDK.02801_02401.nc (attempt 1/8): [Errno 2] No such file or directory: '/workspace/hima-download/data/PAR/202604/H09_20260404_0500_RFL021_FLDK.02801_02401.nc.part'; retry in 15s
+09:20:57 WARNING /pub/himawari/L2/PAR/021/202604/04/07/H09_20260404_0710_RFL021_FLDK.02801_02401.nc (attempt 1/8): [Errno 2] No such file or directory: '/workspace/hima-download/data/PAR/202604/H09_20260404_0710_RFL021_FLDK.02801_02401.nc.part'; retry in 15s
+09:33:12 WARNING /pub/himawari/L2/PAR/021/202604/04/08/H09_20260404_0800_RFL021_FLDK.02801_02401.nc (attempt 1/8): [Errno 2] No such file or directory: '/workspace/hima-download/data/PAR/202604/H09_20260404_0800_RFL021_FLDK.02801_02401.nc.part'; retry in 15s
+09:34:03 WARNING /pub/himawari/L2/PAR/021/202604/04/06/H09_20260404_0610_RFL021_FLDK.02801_02401.nc (attempt 1/8): [Errno 2] No such file or directory: '/workspace/hima-download/data/PAR/202604/H09_20260404_0610_RFL021_FLDK.02801_02401.nc.part'; retry in 15s
+09:37:03 WARNING /pub/himawari/L2/PAR/021/202604/04/08/H09_20260404_0810_RFL021_FLDK.02801_02401.nc (attempt 1/8): [Errno 2] No such file or directory: '/workspace/hima-download/data/PAR/202604/H09_20260404_0810_RFL021_FLDK.02801_02401.nc.part'; retry in 15s
+10:25:37 WARNING /pub/himawari/L2/PAR/021/202604/05/00/H09_20260405_0000_RFL021_FLDK.02801_02401.nc (attempt 1/8): [Errno 2] No such file or directory: '/workspace/hima-download/data/PAR/202604/H09_20260405_0000_RFL021_FLDK.02801_02401.nc.part'; retry in 15s
+10:41:34 WARNING /pub/himawari/L2/PAR/021/202604/05/01/H09_20260405_0100_RFL021_FLDK.02801_02401.nc (attempt 1/8): [Errno 2] No such file or directory: '/workspace/hima-download/data/PAR/202604/H09_20260405_0100_RFL021_FLDK.02801_02401.nc.part'; retry in 15s
+11:30:10 WARNING /pub/himawari/L2/PAR/021/202604/05/07/H09_20260405_0710_RFL021_FLDK.02801_02401.nc (attempt 1/8): timed out; retry in 15s
+12:22:55 WARNING /pub/himawari/L2/PAR/021/202604/05/20/H09_20260405_2010_RFL021_FLDK.02801_02401.nc (attempt 1/8): timed out; retry in 15s
+13:46:28 WARNING /pub/himawari/L2/PAR/021/202604/06/00/H09_20260406_0010_RFL021_FLDK.02801_02401.nc (attempt 1/8): [Errno 2] No such file or directory: '/workspace/hima-download/data/PAR/202604/H09_20260406_0010_RFL021_FLDK.02801_02401.nc.part'; retry in 15s
+14:24:27 WARNING /pub/himawari/L2/PAR/021/202604/06/01/H09_20260406_0110_RFL021_FLDK.02801_02401.nc (attempt 1/8): timed out; retry in 15s
+16:04:41 WARNING /pub/himawari/L2/PAR/021/202604/06/06/H09_20260406_0600_RFL021_FLDK.02801_02401.nc (attempt 1/8): 421 Session Timeout (43200 seconds): closing control connection; retry in 15s
+16:04:44 WARNING /pub/himawari/L2/PAR/021/202604/06/04/H09_20260406_0400_RFL021_FLDK.02801_02401.nc (attempt 1/8): 421 Session Timeout (43200 seconds): closing control connection; retry in 15s
+17:08:22 WARNING /pub/himawari/L2/PAR/021/202604/06/20/H09_20260406_2000_RFL021_FLDK.02801_02401.nc (attempt 1/8): timed out; retry in 15s
+17:08:23 WARNING /pub/himawari/L2/PAR/021/202604/06/18/H09_20260406_1800_RFL021_FLDK.02801_02401.nc (attempt 1/8): timed out; retry in 15s
+17:08:23 WARNING /pub/himawari/L2/PAR/021/202604/06/18/H09_20260406_1810_RFL021_FLDK.02801_02401.nc (attempt 1/8): timed out; retry in 15s
+17:08:23 WARNING /pub/himawari/L2/PAR/021/202604/06/19/H09_20260406_1900_RFL021_FLDK.02801_02401.nc (attempt 1/8): timed out; retry in 15s
+17:08:47 WARNING /pub/himawari/L2/PAR/021/202604/06/20/H09_20260406_2000_RFL021_FLDK.02801_02401.nc (attempt 2/8): [Errno -3] Temporary failure in name resolution; retry in 30s
+17:08:50 WARNING /pub/himawari/L2/PAR/021/202604/06/19/H09_20260406_1900_RFL021_FLDK.02801_02401.nc (attempt 2/8): [Errno -3] Temporary failure in name resolution; retry in 30s
+17:08:50 WARNING /pub/himawari/L2/PAR/021/202604/06/18/H09_20260406_1810_RFL021_FLDK.02801_02401.nc (attempt 2/8): [Errno -3] Temporary failure in name resolution; retry in 30s
+17:08:50 WARNING /pub/himawari/L2/PAR/021/202604/06/18/H09_20260406_1800_RFL021_FLDK.02801_02401.nc (attempt 2/8): [Errno -3] Temporary failure in name resolution; retry in 30s
+17:09:27 WARNING /pub/himawari/L2/PAR/021/202604/06/20/H09_20260406_2000_RFL021_FLDK.02801_02401.nc (attempt 3/8): [Errno -3] Temporary failure in name resolution; retry in 60s
+17:09:30 WARNING /pub/himawari/L2/PAR/021/202604/06/18/H09_20260406_1800_RFL021_FLDK.02801_02401.nc (attempt 3/8): [Errno -3] Temporary failure in name resolution; retry in 60s
+17:09:30 WARNING /pub/himawari/L2/PAR/021/202604/06/18/H09_20260406_1810_RFL021_FLDK.02801_02401.nc (attempt 3/8): [Errno -3] Temporary failure in name resolution; retry in 60s
+17:09:30 WARNING /pub/himawari/L2/PAR/021/202604/06/19/H09_20260406_1900_RFL021_FLDK.02801_02401.nc (attempt 3/8): [Errno -3] Temporary failure in name resolution; retry in 60s
+17:11:30 WARNING /pub/himawari/L2/PAR/021/202604/06/20/H09_20260406_2000_RFL021_FLDK.02801_02401.nc (attempt 4/8): timed out; retry in 120s
+17:11:51 WARNING /pub/himawari/L2/PAR/021/202604/06/19/H09_20260406_1900_RFL021_FLDK.02801_02401.nc (attempt 4/8): timed out; retry in 120s
+17:11:53 WARNING /pub/himawari/L2/PAR/021/202604/06/18/H09_20260406_1810_RFL021_FLDK.02801_02401.nc (attempt 4/8): timed out; retry in 120s
+17:11:55 WARNING /pub/himawari/L2/PAR/021/202604/06/18/H09_20260406_1800_RFL021_FLDK.02801_02401.nc (attempt 4/8): timed out; retry in 120s
+17:55:55 WARNING /pub/himawari/L2/PAR/021/202604/07/00/H09_20260407_0000_RFL021_FLDK.02801_02401.nc (attempt 1/8): [Errno 2] No such file or directory: '/workspace/hima-download/data/PAR/202604/H09_20260407_0000_RFL021_FLDK.02801_02401.nc.part'; retry in 15s
+17:58:52 WARNING /pub/himawari/L2/PAR/021/202604/07/01/H09_20260407_0100_RFL021_FLDK.02801_02401.nc (attempt 1/8): [Errno 2] No such file or directory: '/workspace/hima-download/data/PAR/202604/H09_20260407_0100_RFL021_FLDK.02801_02401.nc.part'; retry in 15s
+18:17:40 WARNING /pub/himawari/L2/PAR/021/202604/07/05/H09_20260407_0500_RFL021_FLDK.02801_02401.nc (attempt 1/8): [Errno 2] No such file or directory: '/workspace/hima-download/data/PAR/202604/H09_20260407_0500_RFL021_FLDK.02801_02401.nc.part'; retry in 15s
+18:21:20 WARNING /pub/himawari/L2/PAR/021/202604/07/08/H09_20260407_0810_RFL021_FLDK.02801_02401.nc (attempt 1/8): [Errno 2] No such file or directory: '/workspace/hima-download/data/PAR/202604/H09_20260407_0810_RFL021_FLDK.02801_02401.nc.part'; retry in 15s
+18:22:25 WARNING /pub/himawari/L2/PAR/021/202604/07/11/H09_20260407_1110_RFL021_FLDK.02801_02401.nc (attempt 1/8): [Errno 2] No such file or directory: '/workspace/hima-download/data/PAR/202604/H09_20260407_1110_RFL021_FLDK.02801_02401.nc.part'; retry in 15s
+18:22:28 WARNING /pub/himawari/L2/PAR/021/202604/07/12/H09_20260407_1200_RFL021_FLDK.02801_02401.nc (attempt 1/8): [Errno 2] No such file or directory: '/workspace/hima-download/data/PAR/202604/H09_20260407_1200_RFL021_FLDK.02801_02401.nc.part'; retry in 15s
+18:26:25 WARNING /pub/himawari/L2/PAR/021/202604/07/19/H09_20260407_1910_RFL021_FLDK.02801_02401.nc (attempt 1/8): [Errno 2] No such file or directory: '/workspace/hima-download/data/PAR/202604/H09_20260407_1910_RFL021_FLDK.02801_02401.nc.part'; retry in 15s
+18:27:21 WARNING /pub/himawari/L2/PAR/021/202604/07/20/H09_20260407_2010_RFL021_FLDK.02801_02401.nc (attempt 1/8): [Errno 2] No such file or directory: '/workspace/hima-download/data/PAR/202604/H09_20260407_2010_RFL021_FLDK.02801_02401.nc.part'; retry in 15s
+18:28:05 WARNING /pub/himawari/L2/PAR/021/202604/07/21/H09_20260407_2100_RFL021_FLDK.02801_02401.nc (attempt 1/8): [Errno 2] No such file or directory: '/workspace/hima-download/data/PAR/202604/H09_20260407_2100_RFL021_FLDK.02801_02401.nc.part'; retry in 15s
+18:29:26 WARNING /pub/himawari/L2/PAR/021/202604/07/22/H09_20260407_2210_RFL021_FLDK.02801_02401.nc (attempt 1/8): [Errno 2] No such file or directory: '/workspace/hima-download/data/PAR/202604/H09_20260407_2210_RFL021_FLDK.02801_02401.nc.part'; retry in 15s
+18:29:57 WARNING /pub/himawari/L2/PAR/021/202604/07/22/H09_20260407_2200_RFL021_FLDK.02801_02401.nc (attempt 1/8): [Errno 2] No such file or directory: '/workspace/hima-download/data/PAR/202604/H09_20260407_2200_RFL021_FLDK.02801_02401.nc.part'; retry in 15s
+18:31:39 WARNING /pub/himawari/L2/PAR/021/202604/07/23/H09_20260407_2300_RFL021_FLDK.02801_02401.nc (attempt 1/8): [Errno 2] No such file or directory: '/workspace/hima-download/data/PAR/202604/H09_20260407_2300_RFL021_FLDK.02801_02401.nc.part'; retry in 15s
+18:32:30 WARNING /pub/himawari/L2/PAR/021/202604/08/00/H09_20260408_0000_RFL021_FLDK.02801_02401.nc (attempt 1/8): [Errno 2] No such file or directory: '/workspace/hima-download/data/PAR/202604/H09_20260408_0000_RFL021_FLDK.02801_02401.nc.part'; retry in 15s
+18:37:39 WARNING /pub/himawari/L2/PAR/021/202604/08/05/H09_20260408_0510_RFL021_FLDK.02801_02401.nc (attempt 1/8): [Errno 2] No such file or directory: '/workspace/hima-download/data/PAR/202604/H09_20260408_0510_RFL021_FLDK.02801_02401.nc.part'; retry in 15s
+18:39:19 WARNING /pub/himawari/L2/PAR/021/202604/08/06/H09_20260408_0600_RFL021_FLDK.02801_02401.nc (attempt 1/8): [Errno 2] No such file or directory: '/workspace/hima-download/data/PAR/202604/H09_20260408_0600_RFL021_FLDK.02801_02401.nc.part'; retry in 15s
+18:40:02 WARNING /pub/himawari/L2/PAR/021/202604/08/03/H09_20260408_0300_RFL021_FLDK.02801_02401.nc (attempt 1/8): [Errno 2] No such file or directory: '/workspace/hima-download/data/PAR/202604/H09_20260408_0300_RFL021_FLDK.02801_02401.nc.part'; retry in 15s
+18:40:19 WARNING /pub/himawari/L2/PAR/021/202604/08/10/H09_20260408_1010_RFL021_FLDK.02801_02401.nc (attempt 1/8): [Errno 2] No such file or directory: '/workspace/hima-download/data/PAR/202604/H09_20260408_1010_RFL021_FLDK.02801_02401.nc.part'; retry in 15s
+18:42:42 WARNING /pub/himawari/L2/PAR/021/202604/08/21/H09_20260408_2110_RFL021_FLDK.02801_02401.nc (attempt 1/8): [Errno 2] No such file or directory: '/workspace/hima-download/data/PAR/202604/H09_20260408_2110_RFL021_FLDK.02801_02401.nc.part'; retry in 15s
+18:53:54 WARNING /pub/himawari/L2/PAR/021/202604/10/05/H09_20260410_0500_RFL021_FLDK.02801_02401.nc (attempt 1/8): [Errno 2] No such file or directory: '/workspace/hima-download/data/PAR/202604/H09_20260410_0500_RFL021_FLDK.02801_02401.nc.part'; retry in 15s
+18:59:46 WARNING /pub/himawari/L2/PAR/021/202604/11/01/H09_20260411_0110_RFL021_FLDK.02801_02401.nc (attempt 1/8): [Errno 2] No such file or directory: '/workspace/hima-download/data/PAR/202604/H09_20260411_0110_RFL021_FLDK.02801_02401.nc.part'; retry in 15s
+19:00:54 WARNING /pub/himawari/L2/PAR/021/202604/11/02/H09_20260411_0200_RFL021_FLDK.02801_02401.nc (attempt 1/8): [Errno 2] No such file or directory: '/workspace/hima-download/data/PAR/202604/H09_20260411_0200_RFL021_FLDK.02801_02401.nc.part'; retry in 15s
+19:02:02 WARNING /pub/himawari/L2/PAR/021/202604/11/04/H09_20260411_0410_RFL021_FLDK.02801_02401.nc (attempt 1/8): [Errno 2] No such file or directory: '/workspace/hima-download/data/PAR/202604/H09_20260411_0410_RFL021_FLDK.02801_02401.nc.part'; retry in 15s
+19:38:22 WARNING /pub/himawari/L2/PAR/021/202604/18/02/H09_20260418_0210_RFL021_FLDK.02801_02401.nc (attempt 1/8): [Errno 2] No such file or directory: '/workspace/hima-download/data/PAR/202604/H09_20260418_0210_RFL021_FLDK.02801_02401.nc.part'; retry in 15s
+19:38:50 WARNING /pub/himawari/L2/PAR/021/202604/18/05/H09_20260418_0510_RFL021_FLDK.02801_02401.nc (attempt 1/8): [Errno 2] No such file or directory: '/workspace/hima-download/data/PAR/202604/H09_20260418_0510_RFL021_FLDK.02801_02401.nc.part'; retry in 15s
+19:40:39 WARNING /pub/himawari/L2/PAR/021/202604/18/20/H09_20260418_2010_RFL021_FLDK.02801_02401.nc (attempt 1/8): [Errno 2] No such file or directory: '/workspace/hima-download/data/PAR/202604/H09_20260418_2010_RFL021_FLDK.02801_02401.nc.part'; retry in 15s
+19:40:56 WARNING /pub/himawari/L2/PAR/021/202604/18/21/H09_20260418_2110_RFL021_FLDK.02801_02401.nc (attempt 1/8): [Errno 2] No such file or directory: '/workspace/hima-download/data/PAR/202604/H09_20260418_2110_RFL021_FLDK.02801_02401.nc.part'; retry in 15s
+19:41:29 WARNING /pub/himawari/L2/PAR/021/202604/18/23/H09_20260418_2300_RFL021_FLDK.02801_02401.nc (attempt 1/8): [Errno 2] No such file or directory: '/workspace/hima-download/data/PAR/202604/H09_20260418_2300_RFL021_FLDK.02801_02401.nc.part'; retry in 15s
+19:42:18 WARNING /pub/himawari/L2/PAR/021/202604/19/01/H09_20260419_0100_RFL021_FLDK.02801_02401.nc (attempt 1/8): [Errno 2] No such file or directory: '/workspace/hima-download/data/PAR/202604/H09_20260419_0100_RFL021_FLDK.02801_02401.nc.part'; retry in 15s
+19:43:19 WARNING /pub/himawari/L2/PAR/021/202604/19/02/H09_20260419_0210_RFL021_FLDK.02801_02401.nc (attempt 1/8): [Errno 2] No such file or directory: '/workspace/hima-download/data/PAR/202604/H09_20260419_0210_RFL021_FLDK.02801_02401.nc.part'; retry in 15s
+19:43:23 WARNING /pub/himawari/L2/PAR/021/202604/19/01/H09_20260419_0110_RFL021_FLDK.02801_02401.nc (attempt 1/8): [Errno 2] No such file or directory: '/workspace/hima-download/data/PAR/202604/H09_20260419_0110_RFL021_FLDK.02801_02401.nc.part'; retry in 15s
+20:03:00 WARNING /pub/himawari/L2/PAR/021/202604/23/23/H09_20260423_2310_RFL021_FLDK.02801_02401.nc (attempt 1/8): [Errno 2] No such file or directory: '/workspace/hima-download/data/PAR/202604/H09_20260423_2310_RFL021_FLDK.02801_02401.nc.part'; retry in 15s
+20:03:40 WARNING /pub/himawari/L2/PAR/021/202604/24/00/H09_20260424_0000_RFL021_FLDK.02801_02401.nc (attempt 1/8): [Errno 2] No such file or directory: '/workspace/hima-download/data/PAR/202604/H09_20260424_0000_RFL021_FLDK.02801_02401.nc.part'; retry in 15s
+20:03:55 WARNING /pub/himawari/L2/PAR/021/202604/24/01/H09_20260424_0110_RFL021_FLDK.02801_02401.nc (attempt 1/8): [Errno 2] No such file or directory: '/workspace/hima-download/data/PAR/202604/H09_20260424_0110_RFL021_FLDK.02801_02401.nc.part'; retry in 15s
+20:04:09 WARNING /pub/himawari/L2/PAR/021/202604/24/00/H09_20260424_0010_RFL021_FLDK.02801_02401.nc (attempt 1/8): [Errno 2] No such file or directory: '/workspace/hima-download/data/PAR/202604/H09_20260424_0010_RFL021_FLDK.02801_02401.nc.part'; retry in 15s
+20:11:23 WARNING /pub/himawari/L2/PAR/021/202604/25/22/H09_20260425_2200_RFL021_FLDK.02801_02401.nc (attempt 1/8): [Errno 2] No such file or directory: '/workspace/hima-download/data/PAR/202604/H09_20260425_2200_RFL021_FLDK.02801_02401.nc.part'; retry in 15s
+20:14:46 WARNING /pub/himawari/L2/PAR/021/202604/26/22/H09_20260426_2200_RFL021_FLDK.02801_02401.nc (attempt 1/8): [Errno 2] No such file or directory: '/workspace/hima-download/data/PAR/202604/H09_20260426_2200_RFL021_FLDK.02801_02401.nc.part'; retry in 15s
+20:15:13 WARNING /pub/himawari/L2/PAR/021/202604/26/23/H09_20260426_2300_RFL021_FLDK.02801_02401.nc (attempt 1/8): [Errno 2] No such file or directory: '/workspace/hima-download/data/PAR/202604/H09_20260426_2300_RFL021_FLDK.02801_02401.nc.part'; retry in 15s
+20:16:32 WARNING /pub/himawari/L2/PAR/021/202604/27/03/H09_20260427_0300_RFL021_FLDK.02801_02401.nc (attempt 1/8): [Errno 2] No such file or directory: '/workspace/hima-download/data/PAR/202604/H09_20260427_0300_RFL021_FLDK.02801_02401.nc.part'; retry in 15s
+20:32:17 WARNING /pub/himawari/L2/PAR/021/202605/01/02/H09_20260501_0210_RFL021_FLDK.02801_02401.nc (attempt 1/8): [Errno 2] No such file or directory: '/workspace/hima-download/data/PAR/202605/H09_20260501_0210_RFL021_FLDK.02801_02401.nc.part'; retry in 15s
+05:14:09 WARNING /pub/himawari/L2/ARP/031/202605/07/00/NC_H09_20260507_0010_L2ARP031_FLDK.02401_02401.nc (attempt 1/8): 421 Session Timeout (43200 seconds): closing control connection; retry in 15s
+05:14:33 WARNING /pub/himawari/L2/ARP/031/202605/07/03/NC_H09_20260507_0300_L2ARP031_FLDK.02401_02401.nc (attempt 1/8): 421 Session Timeout (43200 seconds): closing control connection; retry in 15s
+05:14:33 WARNING /pub/himawari/L2/ARP/031/202605/07/02/NC_H09_20260507_0210_L2ARP031_FLDK.02401_02401.nc (attempt 1/8): 421 Session Timeout (43200 seconds): closing control connection; retry in 15s
+05:14:36 WARNING /pub/himawari/L2/ARP/031/202605/07/02/NC_H09_20260507_0200_L2ARP031_FLDK.02401_02401.nc (attempt 1/8): 421 Session Timeout (43200 seconds): closing control connection; retry in 15s
+08:01:40 WARNING /pub/himawari/L2/ARP/031/202605/13/12/NC_H09_20260513_1210_L2ARP031_FLDK.02401_02401.nc (attempt 1/8): timed out; retry in 15s
+08:04:32 WARNING /pub/himawari/L2/ARP/031/202605/13/16/NC_H09_20260513_1600_L2ARP031_FLDK.02401_02401.nc (attempt 1/8): timed out; retry in 15s
+Downloading 8712 files ━━━━━━━━━━━━ 12118740251… 121.2/121.2   35.4 kB/s 0:00:00
+                                                 GB                             
+11:49:19 INFO    Done: ok=8712 failed=0 size=121.19 GB in 114282.1s (1.1 MB/s)
+Loaded config config.yaml  mode=backfill  data_dir=/satelite_data/himawari/data
+Backfill 2025-06-01 00:00:00+00:00 → 2025-09-01 00:00:00+00:00  products=['PAR',
+'CLP', 'ARP']  minutes=['00', '10']  timelines=4416
+Planning ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 6624/6624 hour-dirs 0:21:24 0:00:00
+  planned: 17620  already on disk: 32  to download: 17588  ~280.72 GB
+19:45:13 WARNING /pub/himawari/L2/PAR/021/202506/09/20/H09_20250609_2000_RFL021_FLDK.02401_02401.nc (attempt 1/8): [Errno 113] No route to host; retry in 15s
+22:24:48 WARNING /pub/himawari/L2/PAR/021/202507/21/01/H09_20250721_0100_RFL021_FLDK.02401_02401.nc (attempt 1/8): 421 Session Timeout (43200 seconds): closing control connection; retry in 15s
+22:24:48 WARNING /pub/himawari/L2/PAR/021/202507/21/00/H09_20250721_0010_RFL021_FLDK.02801_02401.nc (attempt 1/8): 421 Session Timeout (43200 seconds): closing control connection; retry in 15s
+22:24:48 WARNING /pub/himawari/L2/PAR/021/202507/21/01/H09_20250721_0110_RFL021_FLDK.02401_02401.nc (attempt 1/8): 421 Session Timeout (43200 seconds): closing control connection; retry in 15s
+01:43:57 WARNING /pub/himawari/L2/CLP/010/202507/04/03/NC_H09_20250704_0300_L2CLP010_FLDK.02401_02401.nc (attempt 1/8): [Errno 113] No route to host; retry in 15s
+07:45:32 WARNING /pub/himawari/L2/CLP/010/202507/22/02/NC_H09_20250722_0200_L2CLP010_FLDK.02401_02401.nc (attempt 1/8): 421 Session Timeout (43200 seconds): closing control connection; retry in 15s
+10:25:03 WARNING /pub/himawari/L2/CLP/010/202507/26/00/NC_H09_20250726_0000_L2CLP010_FLDK.02401_02401.nc (attempt 1/8): 421 Session Timeout (43200 seconds): closing control connection; retry in 15s
+10:25:04 WARNING /pub/himawari/L2/CLP/010/202507/26/00/NC_H09_20250726_0010_L2CLP010_FLDK.02401_02401.nc (attempt 1/8): 421 Session Timeout (43200 seconds): closing control connection; retry in 15s
+13:44:14 WARNING /pub/himawari/L2/CLP/010/202507/31/03/NC_H09_20250731_0310_L2CLP010_FLDK.02401_02401.nc (attempt 1/8): 421 Session Timeout (43200 seconds): closing control connection; retry in 15s
+14:51:29 WARNING /pub/himawari/L2/CLP/010/202508/01/00/NC_H09_20250801_0000_L2CLP010_FLDK.02401_02401.nc (attempt 1/8): timed out; retry in 15s
+19:45:48 WARNING /pub/himawari/L2/CLP/010/202508/30/21/NC_H09_20250830_2100_L2CLP010_FLDK.02401_02401.nc (attempt 1/8): 421 Session Timeout (43200 seconds): closing control connection; retry in 15s
+19:47:53 WARNING /pub/himawari/L2/ARP/031/202506/03/06/NC_H09_20250603_0610_L2ARP031_FLDK.02401_02401.nc (attempt 1/8): [Errno 113] No route to host; retry in 15s
+19:49:24 WARNING /pub/himawari/L2/ARP/031/202506/04/03/NC_H09_20250604_0300_L2ARP031_FLDK.02401_02401.nc (attempt 1/8): timed out; retry in 15s
+20:24:33 WARNING /pub/himawari/L2/ARP/031/202508/24/01/NC_H09_20250824_0100_L2ARP031_FLDK.02401_02401.nc (attempt 1/8): timed out; retry in 15s
+Downloading 17588 files ━━━━━━━━━━━━ 28071705466… 280.7/280.7   9.5 MB/s 0:00:00
+                                                  GB                            
+20:27:12 INFO    Done: ok=17588 failed=0 size=280.72 GB in 122544.4s (2.3 MB/s)
+Loaded config config.yaml  mode=backfill  data_dir=/satelite_data/himawari/data
+Backfill 2025-08-31 00:00:00+00:00 → 2025-10-01 00:00:00+00:00  products=['PAR',
+'CLP', 'ARP']  minutes=['00', '10']  timelines=1488
+Planning ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 2232/2232 hour-dirs 0:08:33 0:00:00
+  planned: 5942  already on disk: 192  to download: 5750  ~93.55 GB
+02:58:50 WARNING /pub/himawari/L2/PAR/021/202509/01/13/H09_20250901_1310_RFL021_FLDK.02401_02401.nc (attempt 1/8): ; retry in 15s
+02:58:50 WARNING /pub/himawari/L2/PAR/021/202509/01/13/H09_20250901_1300_RFL021_FLDK.02801_02401.nc (attempt 1/8): ; retry in 15s
+02:58:50 WARNING /pub/himawari/L2/PAR/021/202509/01/12/H09_20250901_1210_RFL021_FLDK.02801_02401.nc (attempt 1/8): ; retry in 15s
+02:58:51 WARNING /pub/himawari/L2/PAR/021/202509/01/11/H09_20250901_1110_RFL021_FLDK.02801_02401.nc (attempt 1/8): ; retry in 15s
+02:59:05 WARNING /pub/himawari/L2/PAR/021/202509/01/13/H09_20250901_1310_RFL021_FLDK.02401_02401.nc (attempt 2/8): [Errno 104] Connection reset by peer; retry in 30s
+02:59:06 WARNING /pub/himawari/L2/PAR/021/202509/01/12/H09_20250901_1210_RFL021_FLDK.02801_02401.nc (attempt 2/8): [Errno 104] Connection reset by peer; retry in 30s
+02:59:06 WARNING /pub/himawari/L2/PAR/021/202509/01/13/H09_20250901_1300_RFL021_FLDK.02801_02401.nc (attempt 2/8): [Errno 104] Connection reset by peer; retry in 30s
+02:59:06 WARNING /pub/himawari/L2/PAR/021/202509/01/11/H09_20250901_1110_RFL021_FLDK.02801_02401.nc (attempt 2/8): [Errno 104] Connection reset by peer; retry in 30s
+11:24:02 WARNING /pub/himawari/L2/PAR/021/202509/04/06/H09_20250904_0600_RFL021_FLDK.02401_02401.nc (attempt 1/8): timed out; retry in 15s
+12:15:53 WARNING /pub/himawari/L2/PAR/021/202509/04/08/H09_20250904_0800_RFL021_FLDK.02401_02401.nc (attempt 1/8): timed out; retry in 15s
+12:34:42 WARNING /pub/himawari/L2/PAR/021/202509/04/09/H09_20250904_0900_RFL021_FLDK.02801_02401.nc (attempt 1/8): timed out; retry in 15s
+12:42:08 WARNING /pub/himawari/L2/PAR/021/202509/04/10/H09_20250904_1010_RFL021_FLDK.02401_02401.nc (attempt 1/8): timed out; retry in 15s
+13:15:08 WARNING /pub/himawari/L2/PAR/021/202509/04/19/H09_20250904_1900_RFL021_FLDK.02401_02401.nc (attempt 1/8): timed out; retry in 15s
+13:19:17 WARNING /pub/himawari/L2/PAR/021/202509/04/20/H09_20250904_2000_RFL021_FLDK.02401_02401.nc (attempt 1/8): timed out; retry in 15s
+13:25:54 WARNING /pub/himawari/L2/PAR/021/202509/04/20/H09_20250904_2000_RFL021_FLDK.02801_02401.nc (attempt 1/8): timed out; retry in 15s
+13:27:32 WARNING /pub/himawari/L2/PAR/021/202509/04/20/H09_20250904_2010_RFL021_FLDK.02401_02401.nc (attempt 1/8): timed out; retry in 15s
+13:48:29 WARNING /pub/himawari/L2/PAR/021/202509/04/21/H09_20250904_2100_RFL021_FLDK.02401_02401.nc (attempt 1/8): timed out; retry in 15s
+13:57:36 WARNING /pub/himawari/L2/PAR/021/202509/04/22/H09_20250904_2200_RFL021_FLDK.02401_02401.nc (attempt 1/8): timed out; retry in 15s
+15:00:50 WARNING /pub/himawari/L2/PAR/021/202509/04/22/H09_20250904_2210_RFL021_FLDK.02801_02401.nc (attempt 1/8): timed out; retry in 15s
+21:18:39 WARNING /pub/himawari/L2/ARP/031/202509/08/02/NC_H09_20250908_0210_L2ARP031_FLDK.02401_02401.nc (attempt 1/8): timed out; retry in 15s
+Downloading 5750 files ━━━━━━━━━━━━━ 93551298087/… 93.6/93.6 GB 2.3 MB/s 0:00:00
+21:28:56 INFO    Done: ok=5750 failed=0 size=93.55 GB in 71817.8s (1.3 MB/s)
+Loaded config config.yaml  mode=backfill  data_dir=/satelite_data/himawari/data
+Backfill 2025-09-30 00:00:00+00:00 → 2026-01-02 00:00:00+00:00  products=['PAR',
+'CLP', 'ARP']  minutes=['00', '10']  timelines=4512
+Planning ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 6768/6768 hour-dirs 0:22:02 0:00:00
+  planned: 17891  already on disk: 380  to download: 17511  ~280.67 GB
+11:27:35 WARNING /pub/himawari/L2/PAR/021/202510/03/20/H09_20251003_2000_RFL021_FLDK.02801_02401.nc (attempt 1/8): timed out; retry in 15s
+11:41:08 WARNING /pub/himawari/L2/PAR/021/202510/03/21/H09_20251003_2110_RFL021_FLDK.02801_02401.nc (attempt 1/8): timed out; retry in 15s
+14:21:04 WARNING /pub/himawari/L2/PAR/021/202510/04/03/H09_20251004_0300_RFL021_FLDK.02801_02401.nc (attempt 1/8): timed out; retry in 15s
+14:25:55 WARNING /pub/himawari/L2/PAR/021/202510/04/03/H09_20251004_0300_RFL021_FLDK.02401_02401.nc (attempt 1/8): timed out; retry in 15s
+14:33:40 WARNING /pub/himawari/L2/PAR/021/202510/04/03/H09_20251004_0310_RFL021_FLDK.02401_02401.nc (attempt 1/8): 421 Session Timeout (43200 seconds): closing control connection; retry in 15s
+19:01:37 WARNING /pub/himawari/L2/PAR/021/202510/09/15/H09_20251009_1500_RFL021_FLDK.02401_02401.nc (attempt 1/8): timed out; retry in 15s
+20:15:50 WARNING /pub/himawari/L2/PAR/021/202510/24/23/H08_20251024_2300_RFL021_FLDK.02801_02401.nc (attempt 1/8): timed out; retry in 15s
+20:24:22 WARNING /pub/himawari/L2/PAR/021/202510/26/08/H08_20251026_0800_RFL021_FLDK.02801_02401.nc (attempt 1/8): timed out; retry in 15s
+23:04:16 WARNING /pub/himawari/L2/PAR/021/202512/01/02/H09_20251201_0210_RFL021_FLDK.02801_02401.nc (attempt 1/8): timed out; retry in 15s
+02:21:38 WARNING /pub/himawari/L2/CLP/010/202510/02/04/NC_H09_20251002_0400_L2CLP010_FLDK.02401_02401.nc (attempt 1/8): 421 Session Timeout (43200 seconds): closing control connection; retry in 15s
+02:33:56 WARNING /pub/himawari/L2/CLP/010/202510/03/01/NC_H09_20251003_0100_L2CLP010_FLDK.02401_02401.nc (attempt 1/8): 421 Session Timeout (43200 seconds): closing control connection; retry in 15s
+06:59:18 WARNING /pub/himawari/L2/CLP/010/202510/09/05/NC_H09_20251009_0510_L2CLP010_FLDK.02401_02401.nc (attempt 1/8): timed out; retry in 15s
+07:17:39 WARNING /pub/himawari/L2/CLP/010/202510/09/08/NC_H09_20251009_0810_L2CLP010_FLDK.02401_02401.nc (attempt 1/8): timed out; retry in 15s
+08:16:13 WARNING /pub/himawari/L2/CLP/010/202510/10/04/NC_H09_20251010_0400_L2CLP010_FLDK.02401_02401.nc (attempt 1/8): 421 Session Timeout (43200 seconds): closing control connection; retry in 15s
+10:03:20 WARNING /pub/himawari/L2/CLP/010/202510/13/02/NC_H08_20251013_0210_L2CLP010_FLDK.02401_02401.nc (attempt 1/8): timed out; retry in 15s
+11:49:24 WARNING /pub/himawari/L2/CLP/010/202510/15/06/NC_H08_20251015_0600_L2CLP010_FLDK.02401_02401.nc (attempt 1/8): timed out; retry in 15s
+12:33:02 WARNING /pub/himawari/L2/CLP/010/202510/15/23/NC_H08_20251015_2310_L2CLP010_FLDK.02401_02401.nc (attempt 1/8): timed out; retry in 15s
+13:48:21 WARNING /pub/himawari/L2/CLP/010/202510/16/21/NC_H08_20251016_2100_L2CLP010_FLDK.02401_02401.nc (attempt 1/8): timed out; retry in 15s
+14:34:23 WARNING /pub/himawari/L2/CLP/010/202510/17/02/NC_H08_20251017_0200_L2CLP010_FLDK.02401_02401.nc (attempt 1/8): 421 Session Timeout (43200 seconds): closing control connection; retry in 15s
+20:16:29 WARNING /pub/himawari/L2/CLP/010/202512/13/22/NC_H09_20251213_2200_L2CLP010_FLDK.02401_02401.nc (attempt 1/8): 421 Session Timeout (43200 seconds): closing control connection; retry in 15s
+20:49:28 WARNING /pub/himawari/L2/ARP/031/202510/21/23/NC_H08_20251021_2300_L2ARP031_FLDK.02401_02401.nc (attempt 1/8): timed out; retry in 15s
+20:57:55 WARNING /pub/himawari/L2/ARP/031/202511/06/22/NC_H08_20251106_2210_L2ARP031_FLDK.02401_02401.nc (attempt 1/8): timed out; retry in 15s
+21:10:02 WARNING /pub/himawari/L2/ARP/031/202512/06/00/NC_H09_20251206_0000_L2ARP031_FLDK.02401_02401.nc (attempt 1/8): timed out; retry in 15s
+Downloading 17511 files ━━━━━━━━━━━━ 28067035292… 280.7/280.7   5.8 MB/s 0:00:00
+                                                  GB                            
+21:20:40 INFO    Done: ok=17511 failed=0 size=280.67 GB in 154023.1s (1.8 MB/s)
+Loaded config config.yaml  mode=backfill  data_dir=/satelite_data/himawari/data
+Backfill 2025-01-01 00:00:00+00:00 → 2025-06-02 00:00:00+00:00  products=['PAR',
+'CLP', 'ARP']  minutes=['00', '10']  timelines=7296
+Planning ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 10944/10944 hour-dirs 0:33:24 0:00:00
+  planned: 29049  already on disk: 192  to download: 28857  ~461.26 GB
+08:59:54 WARNING /pub/himawari/L2/PAR/021/202501/03/20/H09_20250103_2010_RFL021_FLDK.02801_02401.nc (attempt 1/8): timed out; retry in 15s
+12:04:16 WARNING /pub/himawari/L2/PAR/021/202501/05/00/H09_20250105_0000_RFL021_FLDK.02401_02401.nc (attempt 1/8): timed out; retry in 15s
+13:05:39 WARNING /pub/himawari/L2/PAR/021/202501/05/03/H09_20250105_0310_RFL021_FLDK.02801_02401.nc (attempt 1/8): timed out; retry in 15s
+13:16:33 WARNING /pub/himawari/L2/PAR/021/202501/05/03/H09_20250105_0300_RFL021_FLDK.02801_02401.nc (attempt 1/8): timed out; retry in 15s
+13:25:20 WARNING /pub/himawari/L2/PAR/021/202501/05/03/H09_20250105_0310_RFL021_FLDK.02401_02401.nc (attempt 1/8): timed out; retry in 15s
+14:07:35 WARNING /pub/himawari/L2/PAR/021/202501/05/04/H09_20250105_0400_RFL021_FLDK.02401_02401.nc (attempt 1/8): 421 Session Timeout (43200 seconds): closing control connection; retry in 15s
+14:51:55 WARNING /pub/himawari/L2/PAR/021/202501/05/06/H09_20250105_0600_RFL021_FLDK.02401_02401.nc (attempt 1/8): timed out; retry in 15s
+15:04:44 WARNING /pub/himawari/L2/PAR/021/202501/05/05/H09_20250105_0510_RFL021_FLDK.02401_02401.nc (attempt 1/8): timed out; retry in 15s
+15:17:33 WARNING /pub/himawari/L2/PAR/021/202501/05/06/H09_20250105_0610_RFL021_FLDK.02401_02401.nc (attempt 1/8): timed out; retry in 15s
+20:11:02 WARNING /pub/himawari/L2/PAR/021/202501/29/21/H09_20250129_2100_RFL021_FLDK.02801_02401.nc (attempt 1/8): timed out; retry in 15s
+01:25:36 WARNING /pub/himawari/L2/PAR/021/202504/09/03/H09_20250409_0300_RFL021_FLDK.02801_02401.nc (attempt 1/8): 421 Session Timeout (43200 seconds): closing control connection; retry in 15s
+02:52:23 WARNING /pub/himawari/L2/PAR/021/202504/10/05/H09_20250410_0510_RFL021_FLDK.02801_02401.nc (attempt 1/8): 421 Session Timeout (43200 seconds): closing control connection; retry in 15s
+03:05:05 WARNING /pub/himawari/L2/PAR/021/202504/10/09/H09_20250410_0900_RFL021_FLDK.02401_02401.nc (attempt 1/8): 421 Session Timeout (43200 seconds): closing control connection; retry in 15s
+08:11:23 WARNING /pub/himawari/L2/PAR/021/202504/12/04/H09_20250412_0400_RFL021_FLDK.02401_02401.nc (attempt 1/8): 421 Session Timeout (43200 seconds): closing control connection; retry in 15s
+09:16:42 WARNING /pub/himawari/L2/PAR/021/202504/12/08/H09_20250412_0810_RFL021_FLDK.02801_02401.nc (attempt 1/8): timed out; retry in 15s
+09:42:14 WARNING /pub/himawari/L2/PAR/021/202504/12/20/H09_20250412_2000_RFL021_FLDK.02401_02401.nc (attempt 1/8): timed out; retry in 15s
+09:58:08 WARNING /pub/himawari/L2/PAR/021/202504/12/20/H09_20250412_2000_RFL021_FLDK.02401_02401.nc (attempt 2/8): timed out; retry in 30s
+11:32:35 WARNING /pub/himawari/L2/PAR/021/202504/13/02/H09_20250413_0210_RFL021_FLDK.02801_02401.nc (attempt 1/8): timed out; retry in 15s
+12:04:19 WARNING /pub/himawari/L2/PAR/021/202504/13/05/H09_20250413_0510_RFL021_FLDK.02401_02401.nc (attempt 1/8): timed out; retry in 15s
+12:08:23 WARNING /pub/himawari/L2/PAR/021/202504/13/05/H09_20250413_0510_RFL021_FLDK.02401_02401.nc (attempt 2/8): timed out; retry in 30s
+12:48:14 WARNING /pub/himawari/L2/PAR/021/202504/13/07/H09_20250413_0700_RFL021_FLDK.02401_02401.nc (attempt 1/8): timed out; retry in 15s
+12:53:51 WARNING /pub/himawari/L2/PAR/021/202504/13/07/H09_20250413_0710_RFL021_FLDK.02801_02401.nc (attempt 1/8): timed out; retry in 15s
+13:08:31 WARNING /pub/himawari/L2/PAR/021/202504/13/08/H09_20250413_0800_RFL021_FLDK.02401_02401.nc (attempt 1/8): timed out; retry in 15s
+13:26:39 WARNING /pub/himawari/L2/PAR/021/202504/13/08/H09_20250413_0810_RFL021_FLDK.02401_02401.nc (attempt 1/8): timed out; retry in 15s
+13:59:06 WARNING /pub/himawari/L2/PAR/021/202504/13/10/H09_20250413_1000_RFL021_FLDK.02401_02401.nc (attempt 1/8): timed out; retry in 15s
+14:14:31 WARNING /pub/himawari/L2/PAR/021/202504/13/11/H09_20250413_1110_RFL021_FLDK.02401_02401.nc (attempt 1/8): timed out; retry in 15s
+14:58:25 WARNING /pub/himawari/L2/PAR/021/202504/13/21/H09_20250413_2110_RFL021_FLDK.02401_02401.nc (attempt 1/8): timed out; retry in 15s
+15:09:46 WARNING /pub/himawari/L2/PAR/021/202504/13/21/H09_20250413_2110_RFL021_FLDK.02801_02401.nc (attempt 1/8): timed out; retry in 15s
+15:36:53 WARNING /pub/himawari/L2/PAR/021/202504/13/22/H09_20250413_2210_RFL021_FLDK.02801_02401.nc (attempt 1/8): timed out; retry in 15s
+16:24:17 WARNING /pub/himawari/L2/PAR/021/202504/13/23/H09_20250413_2310_RFL021_FLDK.02801_02401.nc (attempt 1/8): timed out; retry in 15s
+18:22:27 WARNING /pub/himawari/L2/PAR/021/202504/14/09/H09_20250414_0900_RFL021_FLDK.02401_02401.nc (attempt 1/8): timed out; retry in 15s
+19:00:50 WARNING /pub/himawari/L2/PAR/021/202504/19/14/H09_20250419_1400_RFL021_FLDK.02401_02401.nc (attempt 1/8): timed out; retry in 15s
+00:37:58 WARNING /pub/himawari/L2/CLP/010/202505/06/19/NC_H09_20250506_1910_L2CLP010_FLDK.02401_02401.nc (attempt 1/8): timed out; retry in 15s
+03:10:05 WARNING /pub/himawari/L2/CLP/010/202505/20/10/NC_H09_20250520_1000_L2CLP010_FLDK.02401_02401.nc (attempt 1/8): 421 Session Timeout (43200 seconds): closing control connection; retry in 15s
+06:22:48 WARNING /pub/himawari/L2/CLP/010/202505/24/03/NC_H09_20250524_0310_L2CLP010_FLDK.02401_02401.nc (attempt 1/8): 421 Session Timeout (43200 seconds): closing control connection; retry in 15s
+07:01:07 WARNING /pub/himawari/L2/CLP/010/202505/24/09/NC_H09_20250524_0910_L2CLP010_FLDK.02401_02401.nc (attempt 1/8): 421 Session Timeout (43200 seconds): closing control connection; retry in 15s
+09:32:33 WARNING /pub/himawari/L2/CLP/010/202505/26/06/NC_H09_20250526_0600_L2CLP010_FLDK.02401_02401.nc (attempt 1/8): timed out; retry in 15s
+11:38:30 WARNING /pub/himawari/L2/CLP/010/202505/29/03/NC_H09_20250529_0300_L2CLP010_FLDK.02401_02401.nc (attempt 1/8): timed out; retry in 15s
+11:38:59 WARNING /pub/himawari/L2/CLP/010/202505/29/01/NC_H09_20250529_0100_L2CLP010_FLDK.02401_02401.nc (attempt 1/8): timed out; retry in 15s
+12:03:31 WARNING /pub/himawari/L2/CLP/010/202505/29/05/NC_H09_20250529_0500_L2CLP010_FLDK.02401_02401.nc (attempt 1/8): timed out; retry in 15s
+12:05:54 WARNING /pub/himawari/L2/CLP/010/202505/29/05/NC_H09_20250529_0510_L2CLP010_FLDK.02401_02401.nc (attempt 1/8): timed out; retry in 15s
+12:26:52 WARNING /pub/himawari/L2/CLP/010/202505/29/08/NC_H09_20250529_0810_L2CLP010_FLDK.02401_02401.nc (attempt 1/8): timed out; retry in 15s
+13:26:53 WARNING /pub/himawari/L2/CLP/010/202505/30/01/NC_H09_20250530_0110_L2CLP010_FLDK.02401_02401.nc (attempt 1/8): timed out; retry in 15s
+13:48:02 WARNING /pub/himawari/L2/CLP/010/202505/30/02/NC_H09_20250530_0210_L2CLP010_FLDK.02401_02401.nc (attempt 1/8): timed out; retry in 15s
+14:08:00 WARNING /pub/himawari/L2/CLP/010/202505/30/01/NC_H09_20250530_0110_L2CLP010_FLDK.02401_02401.nc (attempt 2/8): timed out; retry in 30s
+14:35:20 WARNING /pub/himawari/L2/CLP/010/202505/30/07/NC_H09_20250530_0710_L2CLP010_FLDK.02401_02401.nc (attempt 1/8): timed out; retry in 15s
+15:12:16 WARNING /pub/himawari/L2/CLP/010/202505/30/22/NC_H09_20250530_2200_L2CLP010_FLDK.02401_02401.nc (attempt 1/8): timed out; retry in 15s
+18:42:22 WARNING /pub/himawari/L2/ARP/031/202501/23/15/NC_H09_20250123_1500_L2ARP031_FLDK.02401_02401.nc (attempt 1/8): timed out; retry in 15s
+19:15:50 WARNING /pub/himawari/L2/ARP/031/202503/21/06/NC_H09_20250321_0600_L2ARP031_FLDK.02401_02401.nc (attempt 1/8): timed out; retry in 15s
+19:43:19 WARNING /pub/himawari/L2/ARP/031/202505/23/15/NC_H09_20250523_1500_L2ARP031_FLDK.02401_02401.nc (attempt 1/8): timed out; retry in 15s
+19:44:04 WARNING /pub/himawari/L2/ARP/031/202505/25/06/NC_H09_20250525_0600_L2ARP031_FLDK.02401_02401.nc (attempt 1/8): timed out; retry in 15s
+Downloading 28857 files ━━━━━━━━━━━━ 46126437896… 461.3/461.3   6.8 MB/s 0:00:00
+                                                  GB                            
+19:46:30 INFO    Done: ok=28857 failed=0 size=461.26 GB in 236340.6s (2.0 MB/s)
