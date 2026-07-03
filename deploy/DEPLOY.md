@@ -41,7 +41,8 @@ EOF
 
 # 冒烟测试
 ./.venv/bin/hima-download probe
-./.venv/bin/hima-download realtime --once --restore --restore-config restore.yaml
+
+
 ```
 
 核对:`which docker`(宿主机,一般 `/usr/bin/docker`)、`/satelite_data` 是挂载卷
