@@ -189,6 +189,49 @@ def scan_once(
         raise typer.Exit(code=1)
 
 
+@app.command()
+def rechunk(
+    month: Optional[str] = typer.Option(None, help="YYYYMM to rechunk; default = current UTC month"),
+    products: Optional[str] = typer.Option(None, help="restrict to these products, comma-separated"),
+    config: Optional[Path] = typer.Option(None, "--config", "-c", help="restore job YAML"),
+    output_dir: Optional[str] = typer.Option(None, help="override output_dir (.zarr root)"),
+    chunks: Optional[str] = typer.Option(None, help="target chunks, e.g. 'time=-1,latitude=256,longitude=256'"),
+    force: bool = typer.Option(False, "--force", help="rewrite even if time is already a single chunk"),
+    workers: Optional[int] = typer.Option(None, help="dask worker threads (default: min(cpu, 4))"),
+    no_progress: bool = typer.Option(False, "--no-progress", help="disable the progress bar"),
+) -> None:
+    """Defragment: rewrite each (product, month) Zarr with a single time chunk, reading ONLY
+    the Zarr (never the NetCDF). Cheap fix for the fragmentation left by realtime appends --
+    meant for a nightly cron. Defaults to the current UTC month, all configured products."""
+    from .convert import rechunk_month
+
+    cfg = _load_cfg(config, data_dir=None, output_dir=output_dir, bbox=None, products=products,
+                    chunks=chunks, workers=workers)
+    mon = month or datetime.now(timezone.utc).strftime("%Y%m")
+    console.print(f"[bold]rechunk[/]  month={mon}  output_dir={cfg.output_dir}  "
+                  f"products={cfg.products}  workers={cfg.workers}")
+    tally = {"rechunked": 0, "skipped": 0, "missing": 0, "failed": 0}
+    for product in cfg.products:
+        try:
+            status, out = rechunk_month(
+                cfg.output_dir, product, mon,
+                chunks=cfg.chunks, consolidated=cfg.consolidated,
+                progress=_want_progress(no_progress), workers=cfg.workers, force=force,
+            )
+            tally[status] += 1
+            console.print(f"  {product} {mon}: [cyan]{status}[/] -> {out}")
+        except Exception as ex:  # noqa: BLE001 - keep going through the rest
+            logger.error(f"rechunk failed {product} {mon}: {ex}")
+            tally["failed"] += 1
+    t = Table(title="rechunk result", show_header=True)
+    for k in ("rechunked", "skipped", "missing", "failed"):
+        t.add_column(k, justify="right")
+    t.add_row(*(str(tally[k]) for k in ("rechunked", "skipped", "missing", "failed")))
+    console.print(t)
+    if tally["failed"]:
+        raise typer.Exit(code=1)
+
+
 @app.command("list-products")
 def list_products() -> None:
     """List the products the restore step recognizes."""

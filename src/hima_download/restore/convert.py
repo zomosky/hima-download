@@ -388,6 +388,72 @@ def append_month(
     return "appended", out_path
 
 
+def _time_chunk_count(out_path: Path, consolidated: bool) -> int:
+    """Number of chunks along ``time`` in an existing store (>1 == fragmented), or -1."""
+    try:
+        ds = xr.open_zarr(out_path, consolidated=consolidated)
+        try:
+            return len(ds.chunksizes.get("time", ()))
+        finally:
+            ds.close()
+    except Exception:
+        return -1
+
+
+def rechunk_month(
+    output_dir: Path,
+    product: str,
+    month: str,
+    *,
+    chunks: dict[str, int],
+    consolidated: bool = True,
+    progress: bool = False,
+    workers: int | None = None,
+    force: bool = False,
+) -> tuple[str, Path]:
+    """Rewrite one (product, month) Zarr with the target (single-time-chunk) layout,
+    reading **only the Zarr** -- never the NetCDF. This cheaply collapses the ``time``
+    fragmentation left by many realtime ``append_month`` cycles.
+
+    Reads the compact, already-cropped store and re-writes it; the int16 packing and
+    compressor carried in each variable's ``.encoding`` are preserved (only the stale
+    chunk-layout hints are dropped), so the result is byte-identical bar the chunking.
+    The swap is done via a temp store + rename so a crash never leaves a half-written store
+    in place.
+
+    Returns ``(status, out_path)``: ``"rechunked"``, ``"skipped"`` (already <=1 time chunk,
+    unless ``force``), or ``"missing"`` (no readable store).
+    """
+    out_path = out_path_for(output_dir, product, month)
+    if not out_path.is_dir() or _stored_time_count(out_path) < 0:
+        return "missing", out_path
+
+    n_chunks = _time_chunk_count(out_path, consolidated)
+    if not force and n_chunks <= 1:
+        logger.info(f"[{product} {month}] time already in {max(n_chunks,1)} chunk(s); skipping")
+        return "skipped", out_path
+
+    tmp = out_path.parent / f".{out_path.stem}.rechunk.zarr"
+    bak = out_path.parent / f".{out_path.stem}.bak.zarr"
+    _remove(tmp)
+    logger.info(f"[{product} {month}] rechunking ({n_chunks} time chunks) -> single chunk")
+    with _compute_ctx(progress, workers):
+        src = xr.open_zarr(out_path, consolidated=consolidated)
+        src = src.chunk(_resolve_chunks(src, chunks))
+        for v in src.variables:  # drop stale chunk hints only; keep int16 packing + compressor
+            for k in ("chunks", "preferred_chunks"):
+                src[v].encoding.pop(k, None)
+        src.to_zarr(tmp, mode="w", consolidated=consolidated, zarr_format=2)
+        src.close()
+    # atomic-ish swap: out -> bak, tmp -> out, drop bak
+    _remove(bak)
+    out_path.rename(bak)
+    tmp.rename(out_path)
+    _remove(bak)
+    logger.success(f"[{product} {month}] rechunked -> {out_path}")
+    return "rechunked", out_path
+
+
 def scan_all(
     data_dir: Path,
     *,
