@@ -36,6 +36,9 @@ class RestoreConfig:
     clevel: int = 3
     consolidated: bool = True
     workers: int = _DEFAULT_WORKERS  # dask threads for parallel read/crop/encode
+    # Expected per-hour minute slots -> the regular time grid (should match the download
+    # cadence so never-downloaded / delayed frames occupy a NaN slot instead of being absent).
+    minutes: list[str] = field(default_factory=lambda: ["00", "10"])
 
     def validate(self) -> None:
         bad = [p for p in self.products if p not in ALL_PRODUCTS]
@@ -83,5 +86,7 @@ def load_config(path: Path) -> RestoreConfig:
         cfg.consolidated = bool(raw["consolidated"])
     if "workers" in raw:
         cfg.workers = int(raw["workers"])
+    if "minutes" in raw:
+        cfg.minutes = [f"{int(m):02d}" for m in raw["minutes"]]
     cfg.validate()
     return cfg

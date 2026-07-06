@@ -142,6 +142,7 @@ def run(
         start=_parse_dt(start) if start else None,
         end=_parse_dt(end) if end else None,
         force=force,
+        minutes=cfg.minutes,
     )
     console.print(f"[bold]{status}[/]  {out}")
 
@@ -179,6 +180,7 @@ def scan_once(
         progress=_want_progress(no_progress),
         workers=cfg.workers,
         force=force,
+        minutes=cfg.minutes,
     )
     t = Table(title="scan-once result", show_header=True)
     for k in ("processed", "skipped", "empty", "failed"):

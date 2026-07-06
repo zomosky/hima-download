@@ -32,7 +32,8 @@ cat > restore.yaml <<'EOF'
 output_dir: /satelite_data/himawari/zarr
 bbox: [70.0, 140.0, 15.0, 55.0]
 products: [PAR, CLP, ARP]
-chunks: {time: -1, latitude: 256, longitude: 256}
+minutes: ["00", "10"]                   # 期望帧槽 -> 规则网格(须与 HIMA_MINUTES 一致)
+chunks: {time: -1, latitude: 256, longitude: 256}   # time 在规则网格下自动按天分块
 compressor: zstd
 clevel: 3
 consolidated: true
@@ -63,21 +64,21 @@ bash /usr/local/bin/hima-realtime.sh          # 手动跑一次验证
 tail -f /var/log/hima-realtime.cron.log
 ```
 
-宿主机 `crontab -e`,三条:
+宿主机 `crontab -e`,两条:
 
 ```cron
-# ① 每 10 分钟:下新帧 + 增量并入当月 Zarr(脚本自带 flock 防重叠)
+# ① 每 10 分钟:下新帧 + 就地写入当月规则网格 Zarr(脚本自带 flock 防重叠)
 */10 * * * * /bin/bash /usr/local/bin/hima-realtime.sh
 
-# ② 每晚 03:15:整理当月 Zarr 的 time 碎片(只读 Zarr,约 2 分钟)
-15 3 * * * /usr/bin/docker exec zhangmy-dev sh -c 'cd /workspace/hima-download && ./.venv/bin/hima-restore rechunk --config restore.yaml --no-progress' >> /var/log/hima-rechunk.log 2>&1
-
-# ③ 每月 1 号 04:30:从 NetCDF 整月重建"上个月"做正确性兜底(healing + 吸收 JAXA 订正)
+# ② 每月 1 号 04:30:从 NetCDF 整月重建"上个月"做正确性兜底(healing + 吸收 JAXA 订正)
 30 4 1 * * /usr/bin/docker exec zhangmy-dev sh -c 'cd /workspace/hima-download && m=$(date -u -d "last month" +%Y%m 2>/dev/null || date -u -v-1m +%Y%m); for p in PAR CLP ARP; do ./.venv/bin/hima-restore run $p $m --config restore.yaml --force --no-progress; done' >> /var/log/hima-rebuild.log 2>&1
 ```
 
-- ①保证 Zarr 分钟级刷新(下游直接读 Zarr);②把每轮 append 造成的碎片并回整块;
-  ③每月一次从源头重建,顺带修复任何"数据丢失/被订正"的月(见下方幂等盲点)。
+- ①保证 Zarr 分钟级刷新(下游直接读 Zarr);缺帧=NaN 行、延时帧补下来后**就地写入固定 slot**,
+  时间轴不增长、**不产生碎片**——所以旧的"每晚 rechunk 整理碎片"那条已删除、不再需要。
+- ②每月一次从源头重建,顺带修复任何"数据丢失/被订正"的月(见下方幂等盲点)。
+  > `rechunk` 命令仍在,但只用于把**已封口的月**合成整月单块以优化读;**别对当月可写 store 跑**
+  > (会破坏按天分块、让下次就地写变贵)。
 
 ---
 
@@ -123,8 +124,8 @@ docker exec -d zhangmy-dev sh -c 'cd /workspace/hima-download && \
   >> /satelite_data/himawari/logs/batch-2025.log 2>&1'
 ```
 
-批量裁完(历史是已封口的月),记得跑一次整理让 time 成整块(否则如果是 append 出来的会碎):
-批量走的是整月重建、本就是单块,通常无需再整理。
+批量走的是整月重建 -> 直接产出**规则网格**(缺帧=NaN 行、按天分块、CLP 缺测已掩膜为 NaN),
+无碎片、无需再整理。`--force` 会重建已存在产物(升级到规则网格/换 bbox 时用)。
 
 ---
 

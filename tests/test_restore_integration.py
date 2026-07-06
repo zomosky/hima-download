@@ -38,60 +38,73 @@ def test_touched_months_from_jobs():
     assert _touched_months(jobs) == {("ARP", "202601"), ("CLP", "202602")}
 
 
-def _fmt_files(files):
-    return sorted(parse_time(f.name).strftime("%Y-%m-%dT%H:%M") for f in files)
+def _jobs(files):
+    """Build download Jobs (product ARP) whose local_path points at the given files."""
+    arp = DL_PRODUCTS["ARP"]
+    return [Job(arp, parse_time(f.name), "", f, 0) for f in files]
 
 
-def _fmt_store(times):
-    return [str(np.datetime64(x, "m")) for x in times]
+def _slot(ds, f):
+    return ds["AOT"].sel(time=np.datetime64(parse_time(f.name).replace(tzinfo=None), "ns")).values
 
 
-@pytest.mark.skipif(len(_REAL_ARP) < 4, reason="need >=4 real ARP frames in data/ARP/202601")
+def _same(a, b):
+    m = ~(np.isnan(a) & np.isnan(b))
+    return bool((~m).all()) or float(np.nanmax(np.abs(a[m] - b[m]))) < 1e-3
+
+
+@pytest.mark.skipif(len(_REAL_ARP) < 6, reason="need >=6 real ARP frames in data/ARP/202601")
 def test_auto_restore_backfill_then_realtime(tmp_path):
     arp = sorted(_REAL_ARP, key=lambda f: parse_time(f.name))
-    # Build from whole-hour frames only -- that's what makes xarray pick a coarse "hours
-    # since" time unit, so this guards the append-timestamp corruption regression.
-    whole = [f for f in arp if parse_time(f.name).minute == 0]
-    if len(whole) < 2:
-        pytest.skip("need >=2 whole-hour ARP frames")
-    build = whole[:2]
-    build_max = parse_time(build[-1].name)
-    later = [f for f in arp if parse_time(f.name) > build_max][:2]
-    if len(later) < 2:
-        pytest.skip("need >=2 later ARP frames for an in-order append")
+    build, later = arp[:3], arp[3:5]
 
     data, out = tmp_path / "data", tmp_path / "zarr"
     dst = data / "ARP" / "202601"
     dst.mkdir(parents=True)
     cfg = RestoreConfig(
-        data_dir=data,
-        output_dir=out,
-        chunks={"time": -1, "latitude": 256, "longitude": 256},
+        data_dir=data, output_dir=out,
+        chunks={"time": -1, "latitude": 256, "longitude": 256}, minutes=["00", "10"],
     )
     store = out / "ARP" / "202601_ARP.zarr"
 
-    # --- backfill: whole-hour frames -> full build ---
+    # reference: all 5 frames built at once onto the regular grid
+    from hima_download.restore.convert import convert_month
+    rdata = tmp_path / "refdata" / "ARP" / "202601"
+    rdata.mkdir(parents=True)
+    for f in build + later:
+        shutil.copy(f, rdata / f.name)
+    convert_month(tmp_path / "refdata", "ARP", "202601", output_dir=tmp_path / "refzarr",
+                  bbox=cfg.bbox, chunks=cfg.chunks, minutes=cfg.minutes, force=True)
+    ref = xr.open_zarr(tmp_path / "refzarr" / "ARP" / "202601_ARP.zarr")
+
+    # --- backfill: first 3 frames -> full regular-grid build ---
     for f in build:
         shutil.copy(f, dst / f.name)
-    _restore_months({("ARP", "202601")}, cfg, incremental=False)
+    _restore_months(_jobs(build), cfg, incremental=False)
     assert store.is_dir()
     ds = xr.open_zarr(store)
-    assert _fmt_store(ds.time.values) == _fmt_files(build)  # exact timestamps
+    grid_n = ds.sizes["time"]
+    assert grid_n == ref.sizes["time"] > len(build)      # full month grid, not just 3 frames
+    assert all(t in set(ds.time.values) for t in [np.datetime64(parse_time(f.name).replace(tzinfo=None), "ns") for f in build])
+    assert all(_same(_slot(ds, f), _slot(ref, f)) for f in build)   # build slots correct
+    # `later` slots not written yet -> NaN
+    assert all(bool(np.isnan(_slot(ds, f)).all()) for f in later)
     ds.close()
-    assert str(zarr.open(str(store / "AOT")).dtype) == "int16"  # re-packed, compact
+    assert str(zarr.open(str(store / "AOT")).dtype) == "int16"      # re-packed, compact
 
-    # --- realtime: later frames arrive -> in-order incremental append ---
+    # --- realtime: later frames arrive -> in-place region-write (no axis growth) ---
     for f in later:
         shutil.copy(f, dst / f.name)
-    _restore_months({("ARP", "202601")}, cfg, incremental=True)
+    _restore_months(_jobs(later), cfg, incremental=True)
     ds = xr.open_zarr(store)
-    got = _fmt_store(ds.time.values)
+    assert ds.sizes["time"] == grid_n                              # regular grid: no growth
+    assert all(_same(_slot(ds, f), _slot(ref, f)) for f in build + later)  # everything matches ref
     ds.close()
-    # faithful timestamps (no corruption), sorted, no duplicates
-    assert got == _fmt_files(build + later)
 
-    # --- realtime again with nothing new -> no-op ---
-    _restore_months({("ARP", "202601")}, cfg, incremental=True)
+    # --- realtime again with the same frames -> idempotent ---
+    _restore_months(_jobs(later), cfg, incremental=True)
     ds = xr.open_zarr(store)
-    assert _fmt_store(ds.time.values) == _fmt_files(build + later)
+    assert ds.sizes["time"] == grid_n
+    assert all(_same(_slot(ds, f), _slot(ref, f)) for f in build + later)
     ds.close()
+    ref.close()

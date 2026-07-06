@@ -10,9 +10,13 @@ data_dir: data                         # download output root: <data_dir>/<PRODU
 output_dir: zarr                        # where <product>/<YYYYMM>_<product>.zarr is written
 bbox: [70.0, 140.0, 15.0, 55.0]        # west, east, south, north (China region)
 products: [PAR, CLP, ARP]              # PAR uses only the wide 02801 grid
+minutes: ["00", "10"]                  # 期望每小时的帧槽 -> 规则时间网格(须与下载的 HIMA_MINUTES 一致);
+                                       #   未下到/延时的帧在其槽位是 NaN,补下来后就地写入,不改时间轴
 
-# Zarr writer tuning (favors region time-series reads).
-chunks: {time: -1, latitude: 256, longitude: 256}   # -1 = whole dim in one chunk
+# Zarr writer tuning. NB: on the regular grid the time axis is chunked by day automatically
+# (so a single delayed frame's region-write only rewrites that day); the `time` value below
+# is ignored — only the spatial chunks are used.
+chunks: {time: -1, latitude: 256, longitude: 256}
 compressor: zstd                       # zstd | lz4 | blosclz | zlib | none
 clevel: 3
 consolidated: true                     # write .zmetadata for fast open_zarr

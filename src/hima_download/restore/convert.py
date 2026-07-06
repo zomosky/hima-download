@@ -107,8 +107,59 @@ def _frame_key(t: datetime) -> np.datetime64:
     return np.datetime64(t.replace(tzinfo=None), "s")
 
 
+def _frames_per_day(minutes: list[str]) -> int:
+    return len(minutes) * 24
+
+
+def _expected_grid(month: str, minutes: list[str]) -> np.ndarray:
+    """Full regular UTC time axis for a month: every ``minutes`` slot of every hour/day.
+
+    This fixed grid is the backbone of the regular-grid store: frames that were never
+    downloaded (or not yet) occupy their slot as NaN, and any frame -- fresh or delayed --
+    is written in place at its slot, so arrival order is irrelevant and the axis never grows.
+    """
+    import calendar
+
+    y, m = int(month[:4]), int(month[4:6])
+    ndays = calendar.monthrange(y, m)[1]
+    mins = sorted(int(x) for x in minutes)
+    out = [
+        np.datetime64(datetime(y, m, d, h, mm), "ns")
+        for d in range(1, ndays + 1)
+        for h in range(24)
+        for mm in mins
+    ]
+    return np.array(out, dtype="datetime64[ns]")
+
+
+def _regular_chunks(chunks: dict[str, int], minutes: list[str]) -> dict[str, int]:
+    """Chunk policy for a regular-grid store: time chunked by day (so a single-frame
+    region-write only rewrites that day's chunk), spatial chunks from the user config."""
+    return {**chunks, "time": _frames_per_day(minutes)}
+
+
+def _mask_invalid(da: xr.DataArray) -> xr.DataArray:
+    """Set out-of-``valid_range`` values to NaN (physical no-data marker).
+
+    JAXA declares ``valid_min``/``valid_max`` (raw int units) but for some products the
+    actual fill (e.g. CLP's -32766) differs from the declared ``missing_value`` (-32768),
+    so xarray's mask-and-scale leaves the fill *unmasked* -- CLP's "no cloud / no retrieval"
+    then decodes to a bogus ~-327.66 instead of NaN. Honoring ``valid_range`` masks those
+    cleanly. No-op for vars without the attrs. Uses the source scale/offset (still in
+    ``.encoding`` here) to convert the raw bounds to physical units.
+    """
+    vmin = da.attrs.get("valid_min")
+    vmax = da.attrs.get("valid_max")
+    if vmin is None or vmax is None:
+        return da
+    sc = float(da.encoding.get("scale_factor", 1.0))
+    off = float(da.encoding.get("add_offset", 0.0))
+    lo, hi = float(vmin) * sc + off, float(vmax) * sc + off
+    return da.where((da >= min(lo, hi)) & (da <= max(lo, hi)))
+
+
 def _preprocess(ds: xr.Dataset, *, bbox: BBox) -> xr.Dataset:
-    """Per-file hook for ``open_mfdataset``: crop, keep 2-D fields, stamp time."""
+    """Per-file hook for ``open_mfdataset``: crop, keep 2-D fields, mask no-data, stamp time."""
     src = ds.encoding.get("source", "")
     t = parse_time(Path(src).name)
     ds = crop_bbox(ds, bbox)
@@ -123,6 +174,8 @@ def _preprocess(ds: xr.Dataset, *, bbox: BBox) -> xr.Dataset:
     drop = [c for c in ds.coords if c not in _KEEP_COORDS]
     if drop:
         ds = ds.drop_vars(drop, errors="ignore")
+    for v in list(ds.data_vars):  # out-of-valid-range -> NaN (re-encoded to the fill on write)
+        ds[v] = _mask_invalid(ds[v])
     return ds.expand_dims(time=[_np_time(t)])
 
 
@@ -173,8 +226,14 @@ def _packing_encoding(sample_file: Path, varnames: list[str]) -> dict[str, dict]
                 continue
             src = s[v].encoding
             keep = {k: src[k] for k in _PACK_KEYS if k in src}
-            if keep:
-                enc[v] = keep
+            if not keep:
+                continue
+            # Regular-grid gaps are NaN; an int-packed var needs a _FillValue to store them.
+            dt = np.dtype(keep.get("dtype", s[v].dtype))
+            if np.issubdtype(dt, np.integer) and "_FillValue" not in keep:
+                info = np.iinfo(dt)
+                keep["_FillValue"] = dt.type(keep.get("missing_value", info.min if dt.kind == "i" else info.max))
+            enc[v] = keep
     return enc
 
 
@@ -218,13 +277,26 @@ def _stored_time_count(out_path: Path) -> int:
         return -1
 
 
-def _is_complete(out_path: Path, n_files: int) -> bool:
-    """A store is 'done' iff it opens and holds exactly one ``time`` step per on-disk frame.
+def _stored_source_count(out_path: Path) -> int:
+    """The ``n_source_files`` stamped into a store at build time, or -1 if unreadable."""
+    try:
+        ds = xr.open_zarr(out_path, consolidated=True)
+        try:
+            return int(ds.attrs.get("n_source_files", -1))
+        finally:
+            ds.close()
+    except Exception:
+        return -1
 
-    So a month that has since gained frames (files > time steps) is rebuilt/appended, and a
-    crash mid-write (store unreadable -> -1) is reprocessed.
+
+def _is_complete(out_path: Path, n_files: int) -> bool:
+    """A store is 'done' iff its stamped ``n_source_files`` equals the on-disk frame count.
+
+    (On the regular grid the ``time`` axis is a fixed full-month grid, so the number of *real*
+    frames is tracked in an attribute instead.) A month that gained frames rebuilds, and a
+    crash mid-write (store unreadable -> -1) reprocesses.
     """
-    return out_path.is_dir() and _stored_time_count(out_path) == n_files
+    return out_path.is_dir() and _stored_source_count(out_path) == n_files
 
 
 def select_new_files(files: list[Path], existing_times) -> list[Path]:
@@ -265,13 +337,21 @@ def convert_month(
     start: datetime | None = None,
     end: datetime | None = None,
     force: bool = False,
+    minutes: list[str] | None = None,
 ) -> tuple[str, Path]:
     """Full (re)build of one (product, month) into a cropped Zarr store.
 
     Returns ``(status, out_path)`` where status is ``"processed"``, ``"skipped"`` (already
     complete), or ``"empty"`` (no input frames). A ``start``/``end`` sub-range bypasses the
     idempotency skip and always rebuilds (a partial-month run).
+
+    Full-month builds emit a **regular grid**: the ``time`` axis is the complete
+    :func:`_expected_grid` for the month, so never-downloaded / delayed frames occupy their
+    slot as NaN and any later frame is written in place (see :func:`upsert_frames`). Time is
+    chunked by day so a single-frame region-write only rewrites that day. ``start``/``end``
+    sub-range runs stay compact (no reindex) since they're for quick tests.
     """
+    minutes = minutes or ["00", "10"]
     partial_run = start is not None or end is not None
     files = list_files(data_dir, product, month, start=start, end=end)
     out_path = out_path_for(output_dir, product, month)
@@ -288,12 +368,23 @@ def convert_month(
     out_path.parent.mkdir(parents=True, exist_ok=True)
     with _compute_ctx(progress, workers):
         ds = _open_frames(files, bbox)
-        ds = ds.chunk(_resolve_chunks(ds, chunks))
+        if not partial_run:
+            # Regular grid: union keeps every real frame and fills the missing slots with NaN.
+            grid = np.union1d(_expected_grid(month, minutes), ds["time"].values.astype("datetime64[ns]"))
+            n_gap = len(grid) - ds.sizes["time"]
+            ds = ds.reindex(time=grid)
+            eff_chunks = _regular_chunks(chunks, minutes)
+        else:
+            n_gap, eff_chunks = 0, chunks
+        ds = ds.chunk(_resolve_chunks(ds, eff_chunks))
         _clean_encoding(ds)
         ds.attrs["n_source_files"] = len(files)
         ds.attrs["bbox"] = [float(x) for x in bbox]
         ds.attrs["product"] = product
         ds.attrs["month"] = month
+        if not partial_run:
+            ds.attrs["grid_minutes"] = ",".join(minutes)
+            logger.info(f"[{product} {month}] regular grid: {ds.sizes['time']} slots ({n_gap} NaN gaps)")
 
         enc = _build_encoding(files[0], list(map(str, ds.data_vars)), compressor, clevel)
         # Pin a fine-grained integer time encoding so later incremental appends stay faithful.
@@ -388,6 +479,110 @@ def append_month(
     return "appended", out_path
 
 
+def _set_group_attr(out_path: Path, key: str, value, consolidated: bool) -> None:
+    """Update one root-group attribute in place and re-consolidate metadata."""
+    import zarr
+
+    g = zarr.open_group(str(out_path), mode="a")
+    g.attrs[key] = value
+    if consolidated:
+        zarr.consolidate_metadata(str(out_path))
+
+
+def _contiguous_runs(positions: list[int]) -> list[tuple[int, list[int]]]:
+    """Group (already-ascending) grid positions into runs of consecutive indices.
+
+    Returns ``[(start_pos, [orig_index, ...]), ...]`` so each run is one region-write.
+    """
+    runs: list[tuple[int, list[int]]] = []
+    for oi, p in sorted(enumerate(positions), key=lambda kp: kp[1]):
+        if p < 0:
+            continue
+        if runs and p == runs[-1][0] + len(runs[-1][1]):
+            runs[-1][1].append(oi)
+        else:
+            runs.append((p, [oi]))
+    return runs
+
+
+def upsert_frames(
+    data_dir: Path,
+    product: str,
+    month: str,
+    *,
+    output_dir: Path,
+    bbox: BBox,
+    chunks: dict[str, int],
+    minutes: list[str] | None = None,
+    files: list[Path] | None = None,
+    compressor: str = "zstd",
+    clevel: int = 3,
+    consolidated: bool = True,
+    progress: bool = False,
+    workers: int | None = None,
+) -> tuple[str, Path]:
+    """Write frames **in place** into their fixed slots of the regular-grid store.
+
+    This replaces the append model for realtime: every frame -- freshly produced or a
+    *delayed* one that only showed up in a later download window -- maps to a deterministic
+    slot on :func:`_expected_grid` and is region-written there, so arrival order is
+    irrelevant, no ``time`` axis growth happens, and there is no fragmentation to clean up.
+
+    ``files`` restricts the write to specific frames (realtime passes just what it downloaded
+    this cycle); when ``None`` all on-disk frames of the month are (re)written. Falls back to a
+    full :func:`convert_month` when no (or a broken) store exists yet. Returns ``(status,
+    out_path)`` with status ``"upserted"``, ``"skipped"``, ``"processed"`` (first build), or
+    ``"empty"``.
+    """
+    minutes = minutes or ["00", "10"]
+    out_path = out_path_for(output_dir, product, month)
+    on_disk = list_files(data_dir, product, month)
+    if not on_disk:
+        logger.warning(f"[{product} {month}] no input frames; skipping")
+        return "empty", out_path
+    if not out_path.is_dir() or _stored_time_count(out_path) < 0:
+        return convert_month(
+            data_dir, product, month, output_dir=output_dir, bbox=bbox, chunks=chunks,
+            compressor=compressor, clevel=clevel, consolidated=consolidated,
+            progress=progress, workers=workers, force=True, minutes=minutes,
+        )
+
+    write_files = list(files) if files is not None else on_disk
+    if not write_files:
+        return "skipped", out_path
+
+    store = xr.open_zarr(out_path, consolidated=consolidated)
+    try:
+        gidx = {t: i for i, t in enumerate(store["time"].values.astype("datetime64[s]"))}
+    finally:
+        store.close()
+
+    # Spatial chunking must match the store; time is handled per region-write.
+    spatial = {k: v for k, v in _regular_chunks(chunks, minutes).items() if k != "time"}
+    written = 0
+    with _compute_ctx(progress, workers):
+        ds = _open_frames(write_files, bbox)
+        ds = ds.chunk(_resolve_chunks(ds, spatial))
+        positions = [int(gidx.get(t, -1)) for t in ds["time"].values.astype("datetime64[s]")]
+        off_grid = sum(1 for p in positions if p < 0)
+        if off_grid:
+            logger.warning(f"[{product} {month}] {off_grid} frame(s) off the expected grid; skipped")
+        ds_novars = ds.drop_vars(list(ds.coords))  # write only data vars into the region
+        for start, idxs in _contiguous_runs(positions):
+            # Materialize the (small) block: numpy-backed => one chunk, so a partial write
+            # into a day-sized zarr chunk can't race. safe_chunks=False allows the partial
+            # (read-modify-write) region write, which is safe here (sequential, one block).
+            block = ds_novars.isel(time=idxs).load()
+            block.to_zarr(out_path, mode="a", region={"time": slice(start, start + len(idxs))},
+                          consolidated=consolidated, safe_chunks=False)
+            written += len(idxs)
+        ds.close()
+
+    _set_group_attr(out_path, "n_source_files", len(on_disk), consolidated)
+    logger.success(f"[{product} {month}] upserted {written} frame(s) in place -> {out_path}")
+    return "upserted", out_path
+
+
 def _time_chunk_count(out_path: Path, consolidated: bool) -> int:
     """Number of chunks along ``time`` in an existing store (>1 == fragmented), or -1."""
     try:
@@ -467,6 +662,7 @@ def scan_all(
     progress: bool = False,
     workers: int | None = None,
     force: bool = False,
+    minutes: list[str] | None = None,
 ) -> dict[str, int]:
     """Idempotently full-build every (product, month) on disk. Returns a status tally."""
     from .catalog import discover_months
@@ -488,6 +684,7 @@ def scan_all(
                     progress=progress,
                     workers=workers,
                     force=force,
+                    minutes=minutes,
                 )
                 tally[status] += 1
             except Exception as exc:  # noqa: BLE001 - keep sweeping other months
