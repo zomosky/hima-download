@@ -64,7 +64,7 @@ bash /usr/local/bin/hima-realtime.sh          # 手动跑一次验证
 tail -f /var/log/hima-realtime.cron.log
 ```
 
-宿主机 `crontab -e`,两条:
+宿主机 `crontab -e`,三条:
 
 ```cron
 # ① 每 10 分钟:下新帧 + 就地写入当月规则网格 Zarr(脚本自带 flock 防重叠)
@@ -72,6 +72,9 @@ tail -f /var/log/hima-realtime.cron.log
 
 # ② 每月 1 号 04:30:从 NetCDF 整月重建"上个月"做正确性兜底(healing + 吸收 JAXA 订正)
 30 4 1 * * /usr/bin/docker exec zhangmy-dev sh -c 'cd /workspace/hima-download && m=$(date -u -d "last month" +%Y%m 2>/dev/null || date -u -v-1m +%Y%m); for p in PAR CLP ARP; do ./.venv/bin/hima-restore run $p $m --config restore.yaml --force --no-progress; done' >> /var/log/hima-rebuild.log 2>&1
+
+# ③ 每月 2 号 06:00:删除 2 个 UTC 月前的 NetCDF 源,只留最近 2 个月(Zarr 不动)
+0 6 2 * * /usr/bin/docker exec zhangmy-dev sh /workspace/hima-download/deploy/cleanup_old_nc.sh >> /home/zhangmingyu/operation/logs/hima-cleanup.log 2>&1
 ```
 
 - ①保证 Zarr 分钟级刷新(下游直接读 Zarr);缺帧=NaN 行、延时帧补下来后**就地写入固定 slot**,
@@ -79,6 +82,11 @@ tail -f /var/log/hima-realtime.cron.log
 - ②每月一次从源头重建,顺带修复任何"数据丢失/被订正"的月(见下方幂等盲点)。
   > `rechunk` 命令仍在,但只用于把**已封口的月**合成整月单块以优化读;**别对当月可写 store 跑**
   > (会破坏按天分块、让下次就地写变贵)。
+- ③只删 **NetCDF 源**(占空间大),**Zarr 产物保留**(已裁剪、长期留)。保留 2 个月也保证 ②
+  重建上个月时还有 nc 可用。上线前先干跑核对:
+  `docker exec zhangmy-dev sh -c 'DRY_RUN=1 sh /workspace/hima-download/deploy/cleanup_old_nc.sh'`
+  > 排在 2 号是为了避开"服务器本地 1 号但 UTC 还在上月"的边界(脚本按 UTC 月算);同理若服务器非
+  > UTC 时区,②也建议一并挪到 2 号,否则月初那次 `date -u "last month"` 可能算成上上个月。
 
 ---
 
