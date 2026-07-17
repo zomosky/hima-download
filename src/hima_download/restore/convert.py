@@ -107,6 +107,19 @@ def _frame_key(t: datetime) -> np.datetime64:
     return np.datetime64(t.replace(tzinfo=None), "s")
 
 
+# PAR ships per-frame scan start/end as float64 MJD (days since 1858-11-17) that open_zarr
+# decodes to datetime64; on the regular grid the reindex leaves un-written slots as NaN -> NaT.
+# CLP/ARP carry no such field, so we synthesize the same float64-MJD var from the frame's
+# nominal time -- a per-slot "written" marker (real timestamp on a written slot, NaT on the
+# month's pre-allocated empty slots) that downstream monitoring can read uniformly across products.
+_MJD_EPOCH = np.datetime64("1858-11-17T00:00:00", "ns")
+_MJD_UNITS = "days since 1858-11-17 0:0:0"
+
+
+def _mjd_days(t: datetime) -> float:
+    return float((_np_time(t) - _MJD_EPOCH) / np.timedelta64(1, "D"))
+
+
 def _frames_per_day(minutes: list[str]) -> int:
     return len(minutes) * 24
 
@@ -176,7 +189,16 @@ def _preprocess(ds: xr.Dataset, *, bbox: BBox) -> xr.Dataset:
         ds = ds.drop_vars(drop, errors="ignore")
     for v in list(ds.data_vars):  # out-of-valid-range -> NaN (re-encoded to the fill on write)
         ds[v] = _mask_invalid(ds[v])
-    return ds.expand_dims(time=[_np_time(t)])
+    ds = ds.expand_dims(time=[_np_time(t)])
+    # Per-slot written-marker: keep the source's real scan times (PAR), else synthesize from
+    # the frame's nominal time (CLP/ARP). Stored as float64 MJD so open_zarr decodes to
+    # datetime64 and reindex gaps become NaT -- identical representation across products.
+    for name in ("start_time", "end_time"):
+        if name not in ds.variables:
+            ds[name] = xr.DataArray(
+                np.array([_mjd_days(t)], dtype="float64"), dims="time", attrs={"units": _MJD_UNITS}
+            )
+    return ds
 
 
 def _open_frames(files: list[Path], bbox: BBox) -> xr.Dataset:
