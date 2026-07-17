@@ -140,9 +140,10 @@ docker exec -d zhangmy-dev sh -c 'cd /workspace/hima-download && \
 ## 注意事项
 
 - **workers**:HDF5 读锁已修复,restore 侧 `workers: 4` 安全且快;网络盘上加速有限。
-- **幂等盲点**:`run`/`scan-once` 判"已完成"只看 `time 步数 == 帧数`,**不校验 chunk 数据是否真在**。
-  元数据在、数据丢了的坏 store 会被当成完好跳过 —— 只有 `--force` 会重建。第 1 节 ③ 的月度
+- **幂等盲点**:`run`/`scan-once` 判"已完成"看属性 `n_source_files == 帧数`,**不校验 chunk 数据是否真在**。
+  元数据在、数据丢了的坏 store 会被当成完好跳过 —— 只有 `--force` 会重建。第 1 节 ② 的月度
   force 重建就是为此兜底。
-- **日志**:cron 层在 `/var/log/hima-*.log`;业务细节在容器内 `HIMA_LOG_FILE`。
+- **日志**:cron 层在 `/var/log/hima-*.log` 或 `~/operation/logs/`;业务细节在容器内 `HIMA_LOG_FILE`。
 - **读取产物**:`xr.open_zarr("/satelite_data/himawari/zarr/ARP/202601_ARP.zarr")`,已解码为物理量;
-  纬度降序、经度 0–360;夜间/低太阳角整片 NaN 属正常;已不含 `Hour`。
+  纬度降序、经度 0–360;`time` 是整月规则网格(缺帧=NaN 行);用 `~np.isnat(ds["start_time"])`
+  区分"已写入的槽"与"预分配的空槽";夜间/低太阳角整片 NaN 属正常;已不含 `Hour`。

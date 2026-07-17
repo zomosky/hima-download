@@ -280,10 +280,12 @@ consolidated: true
 ```
 
 ```python
-import xarray as xr
+import numpy as np, xarray as xr
 ds = xr.open_zarr("zarr/ARP/202601_ARP.zarr")     # consolidated，开启快
 ds["AOT"].sel(latitude=slice(45, 35), longitude=slice(110, 120))   # (time, lat, lon)
-ds.time.values                                     # 该月每帧的 UTC 时刻
+ds.time.values                                     # 整月规则网格的 UTC 时刻(含未写入的空槽)
+written = ~np.isnat(ds["start_time"])              # 布尔:该槽是否真有帧写入(区分空的预分配槽)
+ds["AOT"].where(written, drop=True)                # 只取已写入的时刻
 ```
 
 ### 说明
@@ -292,13 +294,22 @@ ds.time.values                                     # 该月每帧的 UTC 时刻
   `_YYYYMMDD_HHMM_`（UTC）解析。
 - **PAR 两种网格**：同目录有 `.02801_02401`（经度 70–210，整月）和 `.02401_02401`
   （经度 80–200，仅 1 月 1–5 日)，`hima-restore` **只取 2801**，避免时刻重复。
-- **变量**：保留二维科学场（含 QA），丢弃导航/辅助量（band / geometry / 标量 start/end time）。
+- **变量**：保留二维科学场（含 QA）+ 逐槽 `start_time`/`end_time`；丢弃导航/辅助量（band / geometry）。
   另丢弃 `Hour`（逐像元观测 UT）：它按每帧不同的 `add_offset` 打包，整月拼进一个 store 无法统一
   重编码（int16×1e-4 只覆盖 ±3.27h，非零点帧会溢出），且与 `time` 坐标信息重复。
+- **规则时间网格**：`time` 轴是整月的完整期望网格（每小时 `minutes` 指定的槽，按天分块），**缺帧/
+  未下到的槽留 NaN 行**而不是缺席——下游按固定节奏切窗口、按时间戳对齐都方便。延时到货的帧会被
+  **就地写入其固定 slot**（不增长时间轴、不产生碎片）。
+- **写入标记 `start_time`/`end_time`**：逐槽一维时间序列，`open_zarr` 解码为 `datetime64`。**已写入
+  的槽是真实时间戳、整月预分配但未写入的空槽是 `NaT`**——下游监控靠 `~isnat(start_time)` 区分两者。
+  PAR 用源文件的真实扫描起止时间；CLP/ARP 源无此字段，用帧标称时刻合成（`start==end`），NaT 语义一致。
+- **缺测掩膜**：按各变量 `valid_range` 把越界填充值置 `NaN`。修正 JAXA 声明的 `missing_value` 与实际
+  填充值不符导致的坑（如 CLP 云量缺测会解码成 ~-327 伪值,现在统一为 `NaN`）。
 - **紧凑无损**：保留源文件的 int16 打包 + `scale_factor`/`add_offset`/`missing_value`，store 体积
   约为 float32 的一半；`open_zarr` 默认会自动解码为物理量。
-- **幂等**：store 记录源文件数；`scan-once` 重跑时若该月文件数未变就跳过，月内新增了帧则重建；
-  半途崩溃留下的残缺 store 会被重新处理。`--force` 强制重建。
+- **幂等**：store 用属性 `n_source_files` 记录源文件数（规则网格下 `time` 数固定，故不再用时间步数）；
+  `scan-once` 重跑时若该月文件数未变就跳过，月内新增了帧则重建；半途崩溃留下的残缺 store 会被重新
+  处理。`--force` 强制重建。
 
 ### 下载完成后自动裁剪
 
