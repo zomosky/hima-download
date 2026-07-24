@@ -14,7 +14,7 @@ grid widths in the same folder; we keep **only** the 5 km full-disk ``.02801_024
 from __future__ import annotations
 
 import re
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 # Products handled by the restore step (matches hima_download.catalog.PRODUCTS keys).
@@ -59,19 +59,39 @@ def discover_months(data_dir: Path, product: str) -> list[str]:
     )
 
 
+def discover_days(data_dir: Path, product: str) -> list[str]:
+    """List the ``YYYYMMDD`` days that have >=1 kept nc frame on disk for ``product``.
+
+    Source nc live in month dirs; the day is read from each frame's ``_YYYYMMDD_HHMM_``
+    timestamp so a per-day store is built only for days that actually have data.
+    """
+    days: set[str] = set()
+    for month in discover_months(data_dir, product):
+        for p in (data_dir / product / month).glob("*.nc"):
+            if is_kept(product, p.name):
+                days.add(parse_time(p.name).strftime("%Y%m%d"))
+    return sorted(days)
+
+
 def list_files(
     data_dir: Path,
     product: str,
-    month: str,
+    period: str,
     *,
     start: datetime | None = None,
     end: datetime | None = None,
 ) -> list[Path]:
-    """Sorted kept ``.nc`` files for one (product, month).
+    """Sorted kept ``.nc`` files for one (product, ``period``).
 
-    ``start``/``end`` (UTC, end exclusive) optionally restrict to a sub-range of the
-    month -- useful for quick tests or incremental partial runs.
+    ``period`` is a ``YYYYMM`` month (legacy) or a ``YYYYMMDD`` day (current). Source nc
+    always live in the month-keyed tree ``<data_dir>/<product>/<YYYYMM>/``; a day period
+    globs that month dir and auto-restricts to that day. Explicit ``start``/``end`` (UTC,
+    end exclusive) further restrict to a sub-range -- useful for quick tests or partial runs.
     """
+    month = period[:6]
+    if len(period) == 8 and start is None and end is None:
+        day = datetime(int(period[:4]), int(period[4:6]), int(period[6:8]), tzinfo=timezone.utc)
+        start, end = day, day + timedelta(days=1)
     d = data_dir / product / month
     if not d.is_dir():
         return []

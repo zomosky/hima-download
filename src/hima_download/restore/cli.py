@@ -107,44 +107,56 @@ def _root(verbose: bool = typer.Option(False, "--verbose", "-v")) -> None:
 @app.command()
 def run(
     product: str = typer.Argument(..., help="PAR | CLP | ARP"),
-    month: str = typer.Argument(..., help="YYYYMM, e.g. 202601"),
+    period: str = typer.Argument(..., help="YYYYMMDD day (one store) or YYYYMM month (all its days), e.g. 20260701 / 202607"),
     config: Optional[Path] = typer.Option(None, "--config", "-c", help="restore job YAML"),
     data_dir: Optional[str] = typer.Option(None, help="override data_dir (download output root)"),
     output_dir: Optional[str] = typer.Option(None, help="override output_dir (.zarr root)"),
     bbox: Optional[str] = typer.Option(None, help="west,east,south,north (degrees)"),
     chunks: Optional[str] = typer.Option(None, help="zarr chunks 'time=-1,latitude=256,longitude=256'"),
-    start: Optional[str] = typer.Option(None, help="UTC start (inclusive) to restrict the month"),
-    end: Optional[str] = typer.Option(None, help="UTC end (exclusive) to restrict the month"),
+    start: Optional[str] = typer.Option(None, help="UTC start (inclusive) to restrict a single period"),
+    end: Optional[str] = typer.Option(None, help="UTC end (exclusive) to restrict a single period"),
     force: bool = typer.Option(False, "--force", help="reprocess even if the output is up to date"),
     workers: Optional[int] = typer.Option(None, help="dask worker threads (default: min(cpu, 4))"),
     no_progress: bool = typer.Option(False, "--no-progress", help="disable the progress bar"),
 ) -> None:
-    """Convert one (product, month) to a cropped Zarr store."""
+    """Convert a (product, day) to a cropped per-day Zarr store. A ``YYYYMM`` month argument
+    (re)builds every day of that month present on disk as its own day store."""
     from .convert import convert_month
+    from .catalog import discover_days
 
     product = product.upper()
     if product not in PRODUCTS:
         raise typer.BadParameter(f"unknown product {product!r}; known: {list(PRODUCTS)}")
     cfg = _load_cfg(config, data_dir=data_dir, output_dir=output_dir, bbox=bbox, products=None,
                     chunks=chunks, workers=workers)
-    status, out = convert_month(
-        cfg.data_dir,
-        product,
-        month,
-        output_dir=cfg.output_dir,
-        bbox=cfg.bbox,
-        chunks=cfg.chunks,
-        compressor=cfg.compressor,
-        clevel=cfg.clevel,
-        consolidated=cfg.consolidated,
-        progress=_want_progress(no_progress),
-        workers=cfg.workers,
-        start=_parse_dt(start) if start else None,
-        end=_parse_dt(end) if end else None,
-        force=force,
-        minutes=cfg.minutes,
-    )
-    console.print(f"[bold]{status}[/]  {out}")
+    # A month arg with no explicit sub-range fans out to each of its days; a day arg (or a
+    # start/end partial run) builds exactly that one period.
+    if len(period) == 6 and not start and not end:
+        periods = [d for d in discover_days(cfg.data_dir, product) if d.startswith(period)]
+        if not periods:
+            console.print(f"[yellow]no frames on disk for {product} {period}[/]")
+            return
+    else:
+        periods = [period]
+    for per in periods:
+        status, out = convert_month(
+            cfg.data_dir,
+            product,
+            per,
+            output_dir=cfg.output_dir,
+            bbox=cfg.bbox,
+            chunks=cfg.chunks,
+            compressor=cfg.compressor,
+            clevel=cfg.clevel,
+            consolidated=cfg.consolidated,
+            progress=_want_progress(no_progress),
+            workers=cfg.workers,
+            start=_parse_dt(start) if start else None,
+            end=_parse_dt(end) if end else None,
+            force=force,
+            minutes=cfg.minutes,
+        )
+        console.print(f"[bold]{status}[/]  {out}")
 
 
 @app.command("scan-once")

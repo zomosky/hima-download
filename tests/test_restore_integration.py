@@ -1,6 +1,6 @@
 """Integration test for the download-triggered auto-crop glue (no network).
 
-Drives the CLI helpers ``_touched_months`` / ``_restore_months`` directly (the code wired
+Drives the CLI helpers ``_touched_days`` / ``_restore_days`` directly (the code wired
 into ``backfill``/``realtime``) against real ARP frames if present, simulating "backfill
 downloaded a month, then realtime added two more frames". Self-skips on a bare checkout with
 no downloaded data, so the suite still passes offline.
@@ -19,7 +19,7 @@ zarr = pytest.importorskip("zarr")
 xr = pytest.importorskip("xarray")
 
 from hima_download.catalog import PRODUCTS as DL_PRODUCTS
-from hima_download.cli import _restore_months, _touched_months
+from hima_download.cli import _restore_days, _touched_days
 from hima_download.planner import Job
 from hima_download.restore.catalog import list_files, parse_time
 from hima_download.restore.config import RestoreConfig
@@ -28,14 +28,14 @@ _REAL_DATA = Path(__file__).resolve().parents[1] / "data"
 _REAL_ARP = list_files(_REAL_DATA, "ARP", "202601")
 
 
-def test_touched_months_from_jobs():
+def test_touched_days_from_jobs():
     arp, clp = DL_PRODUCTS["ARP"], DL_PRODUCTS["CLP"]
     jobs = [
         Job(arp, datetime(2026, 1, 1, 0, 0, tzinfo=timezone.utc), "", Path(""), 0),
         Job(arp, datetime(2026, 1, 1, 0, 10, tzinfo=timezone.utc), "", Path(""), 0),
         Job(clp, datetime(2026, 2, 3, 6, 0, tzinfo=timezone.utc), "", Path(""), 0),
     ]
-    assert _touched_months(jobs) == {("ARP", "202601"), ("CLP", "202602")}
+    assert _touched_days(jobs) == {("ARP", "20260101"), ("CLP", "20260203")}
 
 
 def _jobs(files):
@@ -55,32 +55,38 @@ def _same(a, b):
 
 @pytest.mark.skipif(len(_REAL_ARP) < 6, reason="need >=6 real ARP frames in data/ARP/202601")
 def test_auto_restore_backfill_then_realtime(tmp_path):
-    arp = sorted(_REAL_ARP, key=lambda f: parse_time(f.name))
+    # Per-day store: keep to a single UTC day so the 5 frames land in one day store.
+    arp_all = sorted(_REAL_ARP, key=lambda f: parse_time(f.name))
+    day = parse_time(arp_all[0].name).strftime("%Y%m%d")
+    month = day[:6]
+    arp = [f for f in arp_all if parse_time(f.name).strftime("%Y%m%d") == day]
+    if len(arp) < 5:
+        pytest.skip("need >=5 real ARP frames on a single UTC day")
     build, later = arp[:3], arp[3:5]
 
     data, out = tmp_path / "data", tmp_path / "zarr"
-    dst = data / "ARP" / "202601"
+    dst = data / "ARP" / month
     dst.mkdir(parents=True)
     cfg = RestoreConfig(
         data_dir=data, output_dir=out,
         chunks={"time": -1, "latitude": 256, "longitude": 256}, minutes=["00", "10"],
     )
-    store = out / "ARP" / "202601_ARP.zarr"
+    store = out / "ARP" / f"{day}_ARP.zarr"
 
-    # reference: all 5 frames built at once onto the regular grid
+    # reference: all 5 frames built at once onto the regular (day) grid
     from hima_download.restore.convert import convert_month
-    rdata = tmp_path / "refdata" / "ARP" / "202601"
+    rdata = tmp_path / "refdata" / "ARP" / month
     rdata.mkdir(parents=True)
     for f in build + later:
         shutil.copy(f, rdata / f.name)
-    convert_month(tmp_path / "refdata", "ARP", "202601", output_dir=tmp_path / "refzarr",
+    convert_month(tmp_path / "refdata", "ARP", day, output_dir=tmp_path / "refzarr",
                   bbox=cfg.bbox, chunks=cfg.chunks, minutes=cfg.minutes, force=True)
-    ref = xr.open_zarr(tmp_path / "refzarr" / "ARP" / "202601_ARP.zarr")
+    ref = xr.open_zarr(tmp_path / "refzarr" / "ARP" / f"{day}_ARP.zarr")
 
     # --- backfill: first 3 frames -> full regular-grid build ---
     for f in build:
         shutil.copy(f, dst / f.name)
-    _restore_months(_jobs(build), cfg, incremental=False)
+    _restore_days(_jobs(build), cfg, incremental=False)
     assert store.is_dir()
     ds = xr.open_zarr(store)
     grid_n = ds.sizes["time"]
@@ -95,14 +101,14 @@ def test_auto_restore_backfill_then_realtime(tmp_path):
     # --- realtime: later frames arrive -> in-place region-write (no axis growth) ---
     for f in later:
         shutil.copy(f, dst / f.name)
-    _restore_months(_jobs(later), cfg, incremental=True)
+    _restore_days(_jobs(later), cfg, incremental=True)
     ds = xr.open_zarr(store)
     assert ds.sizes["time"] == grid_n                              # regular grid: no growth
     assert all(_same(_slot(ds, f), _slot(ref, f)) for f in build + later)  # everything matches ref
     ds.close()
 
     # --- realtime again with the same frames -> idempotent ---
-    _restore_months(_jobs(later), cfg, incremental=True)
+    _restore_days(_jobs(later), cfg, incremental=True)
     ds = xr.open_zarr(store)
     assert ds.sizes["time"] == grid_n
     assert all(_same(_slot(ds, f), _slot(ref, f)) for f in build + later)

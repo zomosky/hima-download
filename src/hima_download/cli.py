@@ -144,23 +144,23 @@ def _build_restore_cfg(restore_config: Optional[Path]):
     return cfg
 
 
-def _touched_months(jobs) -> set[tuple[str, str]]:
-    """Unique (product_code, YYYYMM) pairs covered by a list of jobs."""
-    return {(j.product.code, j.timeline.strftime("%Y%m")) for j in jobs}
+def _touched_days(jobs) -> set[tuple[str, str]]:
+    """Unique (product_code, YYYYMMDD) pairs covered by a list of jobs."""
+    return {(j.product.code, j.timeline.strftime("%Y%m%d")) for j in jobs}
 
 
-def _jobs_by_month(jobs) -> dict[tuple[str, str], list]:
-    """Group jobs into ``{(product_code, YYYYMM): [job, ...]}``."""
+def _jobs_by_day(jobs) -> dict[tuple[str, str], list]:
+    """Group jobs into ``{(product_code, YYYYMMDD): [job, ...]}``."""
     out: dict[tuple[str, str], list] = {}
     for j in jobs:
-        out.setdefault((j.product.code, j.timeline.strftime("%Y%m")), []).append(j)
+        out.setdefault((j.product.code, j.timeline.strftime("%Y%m%d")), []).append(j)
     return out
 
 
-def _restore_months(jobs, restore_cfg, *, incremental: bool) -> None:
-    """Crop the touched (product, month) to Zarr. ``incremental`` region-writes just the
+def _restore_days(jobs, restore_cfg, *, incremental: bool) -> None:
+    """Crop the touched (product, day) to a per-day Zarr. ``incremental`` region-writes just the
     freshly-downloaded frames into the regular grid (realtime, cheap, handles delayed frames);
-    otherwise the whole month is (re)built onto the regular grid (backfill)."""
+    otherwise the whole day is (re)built onto the regular grid (backfill)."""
     from .restore.convert import convert_month, upsert_frames
 
     progress = sys.stderr.isatty()
@@ -170,16 +170,16 @@ def _restore_months(jobs, restore_cfg, *, incremental: bool) -> None:
         clevel=restore_cfg.clevel, consolidated=restore_cfg.consolidated,
         progress=progress, workers=restore_cfg.workers, minutes=restore_cfg.minutes,
     )
-    for (product, month), pm_jobs in sorted(_jobs_by_month(jobs).items()):
+    for (product, day), pm_jobs in sorted(_jobs_by_day(jobs).items()):
         try:
             if incremental:
                 files = [j.local_path for j in pm_jobs if j.local_path.exists()]
-                status, out = upsert_frames(restore_cfg.data_dir, product, month, files=files, **common)
+                status, out = upsert_frames(restore_cfg.data_dir, product, day, files=files, **common)
             else:
-                status, out = convert_month(restore_cfg.data_dir, product, month, **common)
-            console.print(f"  [green]restore[/] {product} {month}: {status} → {out}")
-        except Exception as ex:  # noqa: BLE001 - one month's failure shouldn't abort the rest
-            logger.error(f"restore failed {product} {month}: {ex}")
+                status, out = convert_month(restore_cfg.data_dir, product, day, **common)
+            console.print(f"  [green]restore[/] {product} {day}: {status} → {out}")
+        except Exception as ex:  # noqa: BLE001 - one day's failure shouldn't abort the rest
+            logger.error(f"restore failed {product} {day}: {ex}")
 
 
 def _do_backfill(
@@ -197,7 +197,7 @@ def _do_backfill(
     if not dry_run and todo:
         run_jobs(todo)
     if restore_cfg is not None and not dry_run:
-        _restore_months(jobs, restore_cfg, incremental=False)
+        _restore_days(jobs, restore_cfg, incremental=False)
 
 
 @app.command()
@@ -265,7 +265,7 @@ def _do_realtime(win: int, interval: int, once: bool, restore_cfg=None) -> None:
                           f"~{sum(j.expected_size for j in todo)/1e9:.2f} GB")
             run_jobs(todo)
             if restore_cfg is not None:
-                _restore_months(todo, restore_cfg, incremental=True)
+                _restore_days(todo, restore_cfg, incremental=True)
         else:
             console.print(f"[dim]{now:%Y-%m-%d %H:%M UTC}  nothing new ({len(have)} on disk in window)[/]")
         if once:

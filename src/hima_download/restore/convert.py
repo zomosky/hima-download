@@ -124,21 +124,24 @@ def _frames_per_day(minutes: list[str]) -> int:
     return len(minutes) * 24
 
 
-def _expected_grid(month: str, minutes: list[str]) -> np.ndarray:
-    """Full regular UTC time axis for a month: every ``minutes`` slot of every hour/day.
+def _expected_grid(period: str, minutes: list[str]) -> np.ndarray:
+    """Full regular UTC time axis for a ``period`` (``YYYYMM`` month or ``YYYYMMDD`` day):
+    every ``minutes`` slot of every hour of every day in the period.
 
     This fixed grid is the backbone of the regular-grid store: frames that were never
     downloaded (or not yet) occupy their slot as NaN, and any frame -- fresh or delayed --
     is written in place at its slot, so arrival order is irrelevant and the axis never grows.
+    A day period yields one day's grid (``len(minutes) * 24`` slots); a month period the
+    whole month.
     """
     import calendar
 
-    y, m = int(month[:4]), int(month[4:6])
-    ndays = calendar.monthrange(y, m)[1]
+    y, m = int(period[:4]), int(period[4:6])
+    days = [int(period[6:8])] if len(period) == 8 else range(1, calendar.monthrange(y, m)[1] + 1)
     mins = sorted(int(x) for x in minutes)
     out = [
         np.datetime64(datetime(y, m, d, h, mm), "ns")
-        for d in range(1, ndays + 1)
+        for d in days
         for h in range(24)
         for mm in mins
     ]
@@ -282,9 +285,10 @@ def _build_encoding(
     return out
 
 
-def out_path_for(output_dir: Path, product: str, month: str) -> Path:
-    """Flat layout: ``<output_dir>/<product>/<YYYYMM>_<product>.zarr``."""
-    return (output_dir / product / f"{month}_{product}.zarr").resolve()
+def out_path_for(output_dir: Path, product: str, period: str) -> Path:
+    """Flat layout: ``<output_dir>/<product>/<period>_<product>.zarr`` where ``period`` is
+    a ``YYYYMM`` month (legacy) or ``YYYYMMDD`` day (current)."""
+    return (output_dir / product / f"{period}_{product}.zarr").resolve()
 
 
 def _stored_time_count(out_path: Path) -> int:
@@ -346,7 +350,7 @@ def _remove(out_path: Path) -> None:
 def convert_month(
     data_dir: Path,
     product: str,
-    month: str,
+    period: str,
     *,
     output_dir: Path,
     bbox: BBox,
@@ -361,7 +365,10 @@ def convert_month(
     force: bool = False,
     minutes: list[str] | None = None,
 ) -> tuple[str, Path]:
-    """Full (re)build of one (product, month) into a cropped Zarr store.
+    """Full (re)build of one (product, ``period``) into a cropped Zarr store.
+
+    ``period`` is a ``YYYYMMDD`` day (current) or ``YYYYMM`` month (legacy); the regular
+    grid and store name follow the period granularity.
 
     Returns ``(status, out_path)`` where status is ``"processed"``, ``"skipped"`` (already
     complete), or ``"empty"`` (no input frames). A ``start``/``end`` sub-range bypasses the
@@ -374,6 +381,7 @@ def convert_month(
     sub-range runs stay compact (no reindex) since they're for quick tests.
     """
     minutes = minutes or ["00", "10"]
+    month = period  # body uses ``month`` as the period label (day or month); grid/paths follow period
     partial_run = start is not None or end is not None
     files = list_files(data_dir, product, month, start=start, end=end)
     out_path = out_path_for(output_dir, product, month)
@@ -403,7 +411,8 @@ def convert_month(
         ds.attrs["n_source_files"] = len(files)
         ds.attrs["bbox"] = [float(x) for x in bbox]
         ds.attrs["product"] = product
-        ds.attrs["month"] = month
+        ds.attrs["period"] = period
+        ds.attrs["month"] = period[:6]
         if not partial_run:
             ds.attrs["grid_minutes"] = ",".join(minutes)
             logger.info(f"[{product} {month}] regular grid: {ds.sizes['time']} slots ({n_gap} NaN gaps)")
@@ -431,7 +440,7 @@ def convert_month(
 def append_month(
     data_dir: Path,
     product: str,
-    month: str,
+    period: str,
     *,
     output_dir: Path,
     bbox: BBox,
@@ -442,16 +451,17 @@ def append_month(
     progress: bool = False,
     workers: int | None = None,
 ) -> tuple[str, Path]:
-    """Incrementally merge new frames into an existing (product, month) Zarr along ``time``.
+    """Incrementally merge new frames into an existing (product, ``period``) Zarr along ``time``.
 
     Falls back to a full :func:`convert_month` when no (or a broken) store exists yet.
     Returns ``(status, out_path)`` where status is ``"appended"``, ``"skipped"`` (no new
     frames), ``"processed"`` (first full build), or ``"empty"``.
 
     Note: appending fragments the ``time`` chunking over many cycles; a periodic full
-    rebuild (``hima-restore scan-once --force``, or letting a closed month rebuild) restores
+    rebuild (``hima-restore scan-once --force``, or letting a closed period rebuild) restores
     the clean single-chunk time layout.
     """
+    month = period  # body uses ``month`` as the period label (day or month)
     files = list_files(data_dir, product, month)
     out_path = out_path_for(output_dir, product, month)
     if not files:
@@ -530,7 +540,7 @@ def _contiguous_runs(positions: list[int]) -> list[tuple[int, list[int]]]:
 def upsert_frames(
     data_dir: Path,
     product: str,
-    month: str,
+    period: str,
     *,
     output_dir: Path,
     bbox: BBox,
@@ -557,6 +567,7 @@ def upsert_frames(
     ``"empty"``.
     """
     minutes = minutes or ["00", "10"]
+    month = period  # body uses ``month`` as the period label (day or month)
     out_path = out_path_for(output_dir, product, month)
     on_disk = list_files(data_dir, product, month)
     if not on_disk:
@@ -686,17 +697,17 @@ def scan_all(
     force: bool = False,
     minutes: list[str] | None = None,
 ) -> dict[str, int]:
-    """Idempotently full-build every (product, month) on disk. Returns a status tally."""
-    from .catalog import discover_months
+    """Idempotently full-build every (product, day) on disk. Returns a status tally."""
+    from .catalog import discover_days
 
     tally = {"processed": 0, "skipped": 0, "empty": 0, "failed": 0}
     for product in products:
-        for month in discover_months(data_dir, product):
+        for day in discover_days(data_dir, product):
             try:
                 status, _ = convert_month(
                     data_dir,
                     product,
-                    month,
+                    day,
                     output_dir=output_dir,
                     bbox=bbox,
                     chunks=chunks,
@@ -709,7 +720,7 @@ def scan_all(
                     minutes=minutes,
                 )
                 tally[status] += 1
-            except Exception as exc:  # noqa: BLE001 - keep sweeping other months
-                logger.error(f"[{product} {month}] failed: {exc}")
+            except Exception as exc:  # noqa: BLE001 - keep sweeping other days
+                logger.error(f"[{product} {day}] failed: {exc}")
                 tally["failed"] += 1
     return tally
