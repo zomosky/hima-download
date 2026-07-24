@@ -57,8 +57,10 @@ def _line_to_entry(line: str) -> tuple[str, int] | None:
 class FTPClient:
     """Single-connection FTP wrapper. Not thread-safe; create one per worker."""
 
-    def __init__(self, timeout: int = 60) -> None:
-        self.timeout = timeout
+    def __init__(self, timeout: int | None = None) -> None:
+        # Default from settings (HIMA_FTP_TIMEOUT) so historical backfill can raise it
+        # for JAXA's slow archived-data retrieval; explicit arg still overrides.
+        self.timeout = timeout if timeout is not None else settings.ftp_timeout
         self._ftp: ftplib.FTP | None = None
 
     # ------------------------------------------------------------------ conn

@@ -51,6 +51,10 @@ class Settings:
 
     max_retries: int = field(default_factory=lambda: _env_int("HIMA_MAX_RETRIES", 5))
     retry_backoff_sec: int = field(default_factory=lambda: _env_int("HIMA_RETRY_BACKOFF_SEC", 10))
+    # Socket timeout for FTP control/data ops. Default 60s is fine for recent data
+    # (~1MB/s), but JAXA's archived (old-month) retrieval stalls >60s and times out;
+    # raise (e.g. HIMA_FTP_TIMEOUT=300) for historical backfill so slow transfers finish.
+    ftp_timeout: int = field(default_factory=lambda: _env_int("HIMA_FTP_TIMEOUT", 60))
 
     log_file: Path = field(default_factory=lambda: Path(_env_str("HIMA_LOG_FILE", "./logs/hima-download.log")).resolve())
     log_rotation: str = field(default_factory=lambda: _env_str("HIMA_LOG_ROTATION", "50 MB"))

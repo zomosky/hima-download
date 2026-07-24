@@ -62,6 +62,12 @@ def is_par_fulldisk(name: str) -> bool:
     return "_RFL" in name
 
 
+# Wide 5km full-disk grid (longitude 70-210). The narrower ``.02401_02401`` variant
+# (longitude 80-200, only some dates) is dropped by restore anyway, so we don't download
+# it — halves PAR bandwidth. Mirrors restore.catalog._PAR_KEEP_SUFFIX.
+_PAR_FULLDISK_KEEP = ".02801_02401.nc"
+
+
 def local_path(data_dir: Path, product: Product, t: datetime, filename: str) -> Path:
     """Flat local layout: <data_dir>/<PRODUCT>/<YYYYMM>/<filename>."""
     return data_dir / product.code / f"{t:%Y%m}" / filename
@@ -82,7 +88,8 @@ def select_files(
     matched = [(n, s) for n, s in listing if substr in n and n.endswith(".nc")]
     if product.code != "PAR":
         return matched
-    out = [(n, s) for n, s in matched if is_par_fulldisk(n)]
+    # Only the wide full-disk grid restore keeps; skip the discarded .02401_02401 variant.
+    out = [(n, s) for n, s in matched if is_par_fulldisk(n) and n.endswith(_PAR_FULLDISK_KEEP)]
     if par_include_japan:
         out += [(n, s) for n, s in matched if is_par_japan(n)]
     return out
