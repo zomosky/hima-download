@@ -612,6 +612,9 @@ def upsert_frames(
         ds.close()
 
     _set_group_attr(out_path, "n_source_files", len(on_disk), consolidated)
+    # 补写 grid_minutes:upsert 建/写的库(尤其 realtime 首建当天库)否则缺此 attr,
+    # 下游(watcher 密度感知)只能从 time 轴反推;源头写上更稳,任何库都带密度标记。
+    _set_group_attr(out_path, "grid_minutes", ",".join(minutes), consolidated)
     logger.success(f"[{product} {month}] upserted {written} frame(s) in place -> {out_path}")
     return "upserted", out_path
 
