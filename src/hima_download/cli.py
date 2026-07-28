@@ -263,9 +263,22 @@ def _do_realtime(win: int, interval: int, once: bool, restore_cfg=None) -> None:
         if todo:
             console.print(f"[cyan]{now:%Y-%m-%d %H:%M UTC}[/]  new: {len(todo)}  on-disk: {len(have)}  "
                           f"~{sum(j.expected_size for j in todo)/1e9:.2f} GB")
-            run_jobs(todo)
-            if restore_cfg is not None:
-                _restore_days(todo, restore_cfg, incremental=True)
+            # 最新优先:先下载+切片最近 fresh_hours 内的帧(保数据新鲜度),再回补
+            # 窗口内更早的缺帧。每段内部按时间倒序提交,线程池饱和时最新帧最先起;
+            # once 模式下即使回补阶段被 cron 锁/超时打断,最新帧也已落盘并切好。
+            fresh_cut = now - timedelta(hours=settings.realtime_fresh_hours)
+            fresh = sorted((j for j in todo if j.timeline >= fresh_cut),
+                           key=lambda j: j.timeline, reverse=True)
+            older = sorted((j for j in todo if j.timeline < fresh_cut),
+                           key=lambda j: j.timeline, reverse=True)
+            for label, batch in (("最新", fresh), ("回补", older)):
+                if not batch:
+                    continue
+                if label == "回补":
+                    console.print(f"[dim]  回补更早缺帧 {len(batch)} 个[/]")
+                run_jobs(batch)
+                if restore_cfg is not None:
+                    _restore_days(batch, restore_cfg, incremental=True)
         else:
             console.print(f"[dim]{now:%Y-%m-%d %H:%M UTC}  nothing new ({len(have)} on disk in window)[/]")
         if once:

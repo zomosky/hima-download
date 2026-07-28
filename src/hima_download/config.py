@@ -48,6 +48,8 @@ class Settings:
 
     realtime_window_hours: int = field(default_factory=lambda: _env_int("HIMA_REALTIME_WINDOW_HOURS", 6))
     realtime_interval_sec: int = field(default_factory=lambda: _env_int("HIMA_REALTIME_INTERVAL_SEC", 300))
+    #: 最新优先带:每轮先下载+切片最近 N 小时的帧(保新鲜),再回补窗口内更早的缺帧
+    realtime_fresh_hours: int = field(default_factory=lambda: _env_int("HIMA_REALTIME_FRESH_HOURS", 1))
 
     max_retries: int = field(default_factory=lambda: _env_int("HIMA_MAX_RETRIES", 5))
     retry_backoff_sec: int = field(default_factory=lambda: _env_int("HIMA_RETRY_BACKOFF_SEC", 10))
